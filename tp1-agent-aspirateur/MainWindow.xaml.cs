@@ -5,6 +5,12 @@
         public MainWindow()
         {
             InitializeComponent();
+            
+            var environment = new Environment();
+            environment.start();
+            
+            var agent = new Agent();
+            agent.start();
         }
     }
 }
