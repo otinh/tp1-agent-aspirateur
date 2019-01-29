@@ -10,11 +10,28 @@ namespace tp1_agent_aspirateur
 {
     public class Environment
     {
+        private enum Object
+        {
+            DUST,
+            JEWEL,
+            DUST_AND_JEWEL
+        }
+
+        // Coordonnées de la grille
+        private const int MIN_X = 0;
+        private const int MAX_X = 9;
+        private const int MIN_Y = 0;
+        private const int MAX_Y = 9;
+
+        // Chance d'apparaître chaque tour en %
         private const int DUST_SPAWN_CHANCE = 10;
         private const int JEWEL_SPAWN_CHANCE = 5;
 
         private Thread thread;
         private Grid grid;
+
+        private static readonly Random rnd = new Random();
+        private static readonly object syncLock = new object();
 
         private int performance { get; set; }
 
@@ -44,42 +61,60 @@ namespace tp1_agent_aspirateur
 
         private void generateDust()
         {
-            if (random() < DUST_SPAWN_CHANCE)
+            if (random(0, 100) < DUST_SPAWN_CHANCE)
             {
-                // TODO: accéder à MainWindow.xaml pour générer de la poussière
-
-                // Accès à l'image
-                var image = new Image();
-                var bitmapImage = new BitmapImage();
-                bitmapImage.BeginInit();
-                bitmapImage.UriSource = new Uri("images/wall-e.jpg", UriKind.Relative);
-                bitmapImage.EndInit();
-                image.Source = bitmapImage;
-
-                // Coordonnées (x,y)
-                Grid.SetColumn(image, 0);
-                Grid.SetRow(image, 5);
-
-                // TODO: Problème InvalidOperationException !
-                Application.Current.Dispatcher.Invoke(DispatcherPriority.Background,
-                    new ThreadStart(delegate { grid.Children.Add(image); }));
-
+                addToGrid(Object.DUST);
                 Debug.WriteLine("Dust has been generated!");
             }
         }
 
         private void generateJewel()
         {
-            if (random() > 100 - JEWEL_SPAWN_CHANCE)
+            if (random(0, 100) > 100 - JEWEL_SPAWN_CHANCE)
             {
-                // TODO: accéder à MainWindow.xaml pour générer des bijoux
+                addToGrid(Object.JEWEL);
                 Debug.WriteLine("Jewel has been generated!");
             }
         }
 
-        private static int random()
+        private void addToGrid(Object o)
         {
-            return new Random().Next(0, 101);
+            Application.Current.Dispatcher.Invoke(() =>
+            {
+                var x = random(MIN_X, MAX_X);
+                var y = random(MIN_Y, MAX_Y);
+                var image = getImage(o);
+                setCoordinates(image, x, y);
+                grid.Children.Add(image);
+            });
+        }
+
+        private Image getImage(Object o)
+        {
+            var image = new Image();
+            var bitmapImage = new BitmapImage();
+            var uri = o == Object.DUST ? "images/dust.jpg" : "images/jewels.jpg";
+
+            bitmapImage.BeginInit();
+            bitmapImage.UriSource = new Uri(uri, UriKind.Relative);
+            bitmapImage.EndInit();
+
+            image.Source = bitmapImage;
+            return image;
+        }
+
+        private void setCoordinates(UIElement image, int x, int y)
+        {
+            Grid.SetColumn(image, x);
+            Grid.SetRow(image, y);
+        }
+
+        private static int random(int min, int max)
+        {
+            lock (syncLock)
+            {
+                return rnd.Next(min, max + 1);
+            }
         }
     }
 }
