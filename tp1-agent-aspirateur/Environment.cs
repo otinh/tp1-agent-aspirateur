@@ -16,7 +16,7 @@ namespace tp1_agent_aspirateur
         private const int MAX_Y = 9;
 
         // Chance d'apparaître chaque tour en %
-        private const int DUST_SPAWN_CHANCE = 50;
+        private const int DUST_SPAWN_CHANCE = 10;
         private const int JEWEL_SPAWN_CHANCE = 5;
 
         // La grille et son affichage
@@ -57,7 +57,7 @@ namespace tp1_agent_aspirateur
 
         private void initGrid()
         {
-            for (var i = 0; i < MAX_X; ++i)
+            for (var i = 0; i < MAX_X + 1; ++i)
             for (var j = 0; j < MAX_Y + 1; ++j)
                 grid[i, j] = new Cell(Cell.State.EMPTY);
         }
@@ -85,8 +85,8 @@ namespace tp1_agent_aspirateur
         {
             Application.Current.Dispatcher.Invoke(() =>
             {
-                var x = random(MIN_X, MAX_X);
-                var y = random(MIN_Y, MAX_Y);
+                var x = random(MIN_X, grid.GetLength(0));
+                var y = random(MIN_Y, grid.GetLength(1));
                 var sprite = getSprite(cell);
 
                 switch (cell)
@@ -129,7 +129,22 @@ namespace tp1_agent_aspirateur
         {
             var image = new Image();
             var bitmapImage = new BitmapImage();
-            var uri = state == Cell.State.DUST ? "images/dust.jpg" : "images/jewels.jpg";
+            string uri;
+            switch (state)
+            {
+                    case Cell.State.DUST:
+                        uri = "images/dust.jpg";
+                        break;
+                    case Cell.State.JEWEL:
+                        uri = "images/jewels.jpg";
+                        break;
+                    case Cell.State.DUST_AND_JEWEL:
+                        uri = "images/dust-and-jewels.jpg";
+                        break;
+                    default:
+                        uri = "";
+                        break;
+            }
 
             bitmapImage.BeginInit();
             bitmapImage.UriSource = new Uri(uri, UriKind.Relative);
@@ -150,7 +165,7 @@ namespace tp1_agent_aspirateur
         {
             lock (SyncLock)
             {
-                return Rnd.Next(min, max + 1);
+                return Rnd.Next(min, max );
             }
         }
     }
