@@ -16,7 +16,7 @@ namespace tp1_agent_aspirateur
         private const int MAX_Y = 9;
 
         // Chance d'apparaître chaque tour en %
-        private const int DUST_SPAWN_CHANCE = 50;
+        private const int DUST_SPAWN_CHANCE = 10;
         private const int JEWEL_SPAWN_CHANCE = 5;
 
         // La grille et son affichage
@@ -87,7 +87,6 @@ namespace tp1_agent_aspirateur
             {
                 var x = random(MIN_X, MAX_X);
                 var y = random(MIN_Y, MAX_Y);
-                var sprite = getSprite(cell);
 
                 switch (cell)
                 {
@@ -97,8 +96,9 @@ namespace tp1_agent_aspirateur
                         {
                             case Cell.State.EMPTY:
                                 grid[x, y].state = Cell.State.DUST;
-                                display(sprite, x, y);
+                                display(getSprite(Cell.State.DUST), x, y);
                                 break;
+
                             case Cell.State.JEWEL:
                                 grid[x, y].state = Cell.State.DUST_AND_JEWEL;
                                 display(getSprite(Cell.State.DUST_AND_JEWEL), x, y);
@@ -112,8 +112,9 @@ namespace tp1_agent_aspirateur
                         {
                             case Cell.State.EMPTY:
                                 grid[x, y].state = Cell.State.JEWEL;
-                                display(sprite, x, y);
+                                display(getSprite(Cell.State.JEWEL), x, y);
                                 break;
+
                             case Cell.State.DUST:
                                 grid[x, y].state = Cell.State.DUST_AND_JEWEL;
                                 display(getSprite(Cell.State.DUST_AND_JEWEL), x, y);
@@ -129,8 +130,22 @@ namespace tp1_agent_aspirateur
         {
             var image = new Image();
             var bitmapImage = new BitmapImage();
-            var uri = state == Cell.State.DUST ? "images/dust.jpg" : "images/jewels.jpg";
-            if (state == Cell.State.DUST_AND_JEWEL) uri = "images/dust-and-jewels.jpg";
+            string uri;
+            switch (state)
+            {
+                case Cell.State.DUST:
+                    uri = "images/dust.jpg";
+                    break;
+                case Cell.State.JEWEL:
+                    uri = "images/jewels.jpg";
+                    break;
+                case Cell.State.DUST_AND_JEWEL:
+                    uri = "images/dust-and-jewels.jpg";
+                    break;
+                default:
+                    uri = "";
+                    break;
+            }
 
             bitmapImage.BeginInit();
             bitmapImage.UriSource = new Uri(uri, UriKind.Relative);
@@ -151,7 +166,7 @@ namespace tp1_agent_aspirateur
         {
             lock (SyncLock)
             {
-                return Rnd.Next(min, max + 1);
+                return Rnd.Next(min, max);
             }
         }
     }
