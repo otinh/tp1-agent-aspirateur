@@ -150,7 +150,7 @@ namespace tp1_agent_aspirateur
                     if (x == rowRobot && y == columnRobot) uri = "images/wall-e-and-dust-and-jewels.jpg";
                     break;
                 case Cell.State.EMPTY:
-                    uri = "images/empty.jpg";
+                    uri = "images/empty.png";
                     if (x == rowRobot && y == columnRobot) uri = "images/wall-e.jpg";
                     break;
             }
