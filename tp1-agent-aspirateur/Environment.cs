@@ -132,6 +132,11 @@ namespace tp1_agent_aspirateur
 
         private Image getSprite(Cell.State state, int x, int y)
         {
+            return getSprite(state, x, y, false);
+        }
+        
+        private Image getSprite(Cell.State state, int x, int y, bool removeRobot)
+        {
             var image = new Image();
             var bitmapImage = new BitmapImage();
             var uri = "";
@@ -139,21 +144,22 @@ namespace tp1_agent_aspirateur
             {
                 case Cell.State.DUST:
                     uri = "images/dust.jpg";
-                    if (x == rowRobot && y == columnRobot) uri = "images/wall-e-and-dust.jpg";
+                    if (!removeRobot && x == rowRobot && y == columnRobot) uri = "images/wall-e-and-dust.jpg";
                     break;
                 case Cell.State.JEWEL:
                     uri = "images/jewels.jpg";
-                    if (x == rowRobot && y == columnRobot) uri = "images/wall-e-and-jewels.jpg";
+                    if (!removeRobot && x == rowRobot && y == columnRobot) uri = "images/wall-e-and-jewels.jpg";
                     break;
                 case Cell.State.DUST_AND_JEWEL:
                     uri = "images/dust-and-jewels.jpg";
-                    if (x == rowRobot && y == columnRobot) uri = "images/wall-e-and-dust-and-jewels.jpg";
+                    if (!removeRobot && x == rowRobot && y == columnRobot) uri = "images/wall-e-and-dust-and-jewels.jpg";
                     break;
                 case Cell.State.EMPTY:
-                    uri = "images/empty.jpg";
-                    if (x == rowRobot && y == columnRobot) uri = "images/wall-e.jpg";
+                    uri = "images/empty.png";
+                    if (!removeRobot && x == rowRobot && y == columnRobot) uri = "images/wall-e.jpg";
                     break;
             }
+            Debug.WriteLine("uri: " + uri);
 
             bitmapImage.BeginInit();
             bitmapImage.UriSource = new Uri(uri, UriKind.Relative);
@@ -238,7 +244,7 @@ namespace tp1_agent_aspirateur
                 case "move":
                     Application.Current.Dispatcher.Invoke(() =>
                     {
-                        display(getSprite(grid[rowRobot, columnRobot].state, rowRobot, columnRobot), rowRobot, columnRobot);
+                        display(getSprite(grid[rowRobot, columnRobot].state, rowRobot, columnRobot, true), rowRobot, columnRobot);
 
                         rowRobot = row;
                         columnRobot = column;
