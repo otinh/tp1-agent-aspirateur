@@ -51,7 +51,7 @@
       <SubType>Designer</SubType>
     </ApplicationDefinition>
     <Compile Include="Sensor.cs" />
-    <Compile Include="Weels.cs" />
+    <Compile Include="Wheels.cs" />
     <Page Include="MainWindow.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>

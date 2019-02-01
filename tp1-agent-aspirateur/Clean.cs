@@ -9,7 +9,7 @@ namespace tp1_agent_aspirateur
     public class Cleaner
     {
 
-        private void clean(Environment myEnv, int row, int column)
+        public void clean(Environment myEnv, int row, int column)
         {
             myEnv.robotActionUpdate("clean", row, column);
         }

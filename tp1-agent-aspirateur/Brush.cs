@@ -9,7 +9,7 @@ namespace tp1_agent_aspirateur
     public class Brush
     {
 
-        private void catchStuff(Environment myEnv, int row, int column)
+        public void catchStuff(Environment myEnv, int row, int column)
         {
             myEnv.robotActionUpdate("catch", row, column);
         }

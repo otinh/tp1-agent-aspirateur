@@ -6,10 +6,10 @@ using System.Threading.Tasks;
 
 namespace tp1_agent_aspirateur
 {
-    public class Weels
+    public class Wheels
     {
 
-        private void move(Environment myEnv, int row, int column)
+        public void move(Environment myEnv, int row, int column)
         {
             myEnv.robotActionUpdate("move", row, column);
         }

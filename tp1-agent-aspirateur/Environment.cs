@@ -16,8 +16,8 @@ namespace tp1_agent_aspirateur
         private const int MAX_Y = 9;
 
         // Chance d'apparaître chaque tour en %
-        private const int DUST_SPAWN_CHANCE = 90;
-        private const int JEWEL_SPAWN_CHANCE = 90;
+        private const int DUST_SPAWN_CHANCE = 15;
+        private const int JEWEL_SPAWN_CHANCE = 5;
 
         // La grille et son affichage
         private Thread thread;
@@ -27,7 +27,7 @@ namespace tp1_agent_aspirateur
         // Variables concernant le robot
         private int performance;
         private int rowRobot = 0;
-        private int columnRobot;
+        private int columnRobot = 0;
 
         // Variables pour gérer l'aléatoire
         private static readonly Random Rnd = new Random();
@@ -236,8 +236,15 @@ namespace tp1_agent_aspirateur
                     break;
 
                 case "move":
-                    rowRobot = row;
-                    columnRobot = column;
+                    Application.Current.Dispatcher.Invoke(() =>
+                    {
+                        display(getSprite(grid[rowRobot, columnRobot].state, rowRobot, columnRobot), rowRobot, columnRobot);
+
+                        rowRobot = row;
+                        columnRobot = column;
+
+                        display(getSprite(grid[row, column].state, row, column), row, column);
+                    });
                     break;
             }
         }

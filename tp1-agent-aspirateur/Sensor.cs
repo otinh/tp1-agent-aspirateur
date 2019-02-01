@@ -9,12 +9,12 @@ namespace tp1_agent_aspirateur
     public class Sensor
     {
 
-        private Cell[,] perceptMap(Environment myEnv)
+        public Cell[,] perceptMap(Environment myEnv)
         {
             return myEnv.getGrid();
         }
 
-        private void readPerformance(Environment myEnv)
+        public void readPerformance(Environment myEnv)
         {
             myEnv.getPerformance();
         }
