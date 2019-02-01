@@ -12,3 +12,17 @@ D:\Cours\Intelligence Artificielle\tp1-agent-aspirateur\tp1-agent-aspirateur\obj
 D:\Cours\Intelligence Artificielle\tp1-agent-aspirateur\tp1-agent-aspirateur\obj\Debug\tp1-agent-aspirateur.csproj.CoreCompileInputs.cache
 D:\Cours\Intelligence Artificielle\tp1-agent-aspirateur\tp1-agent-aspirateur\obj\Debug\tp1_agent_aspirateur.exe
 D:\Cours\Intelligence Artificielle\tp1-agent-aspirateur\tp1-agent-aspirateur\obj\Debug\tp1_agent_aspirateur.pdb
+C:\Users\titlo\Documents\GitHub\tp1-agent-aspirateur\tp1-agent-aspirateur\bin\Debug\tp1_agent_aspirateur.exe.config
+C:\Users\titlo\Documents\GitHub\tp1-agent-aspirateur\tp1-agent-aspirateur\bin\Debug\tp1_agent_aspirateur.exe
+C:\Users\titlo\Documents\GitHub\tp1-agent-aspirateur\tp1-agent-aspirateur\bin\Debug\tp1_agent_aspirateur.pdb
+C:\Users\titlo\Documents\GitHub\tp1-agent-aspirateur\tp1-agent-aspirateur\obj\Debug\tp1-agent-aspirateur.csprojAssemblyReference.cache
+C:\Users\titlo\Documents\GitHub\tp1-agent-aspirateur\tp1-agent-aspirateur\obj\Debug\MainWindow.baml
+C:\Users\titlo\Documents\GitHub\tp1-agent-aspirateur\tp1-agent-aspirateur\obj\Debug\MainWindow.g.cs
+C:\Users\titlo\Documents\GitHub\tp1-agent-aspirateur\tp1-agent-aspirateur\obj\Debug\App.g.cs
+C:\Users\titlo\Documents\GitHub\tp1-agent-aspirateur\tp1-agent-aspirateur\obj\Debug\tp1_agent_aspirateur_MarkupCompile.cache
+C:\Users\titlo\Documents\GitHub\tp1-agent-aspirateur\tp1-agent-aspirateur\obj\Debug\tp1_agent_aspirateur.g.resources
+C:\Users\titlo\Documents\GitHub\tp1-agent-aspirateur\tp1-agent-aspirateur\obj\Debug\tp1_agent_aspirateur.Properties.Resources.resources
+C:\Users\titlo\Documents\GitHub\tp1-agent-aspirateur\tp1-agent-aspirateur\obj\Debug\tp1-agent-aspirateur.csproj.GenerateResource.cache
+C:\Users\titlo\Documents\GitHub\tp1-agent-aspirateur\tp1-agent-aspirateur\obj\Debug\tp1-agent-aspirateur.csproj.CoreCompileInputs.cache
+C:\Users\titlo\Documents\GitHub\tp1-agent-aspirateur\tp1-agent-aspirateur\obj\Debug\tp1_agent_aspirateur.exe
+C:\Users\titlo\Documents\GitHub\tp1-agent-aspirateur\tp1-agent-aspirateur\obj\Debug\tp1_agent_aspirateur.pdb

@@ -16,13 +16,18 @@ namespace tp1_agent_aspirateur
         private const int MAX_Y = 9;
 
         // Chance d'apparaître chaque tour en %
-        private const int DUST_SPAWN_CHANCE = 10;
-        private const int JEWEL_SPAWN_CHANCE = 5;
+        private const int DUST_SPAWN_CHANCE = 90;
+        private const int JEWEL_SPAWN_CHANCE = 90;
 
         // La grille et son affichage
         private Thread thread;
         private readonly Grid gridDisplay;
         private Cell[,] grid = new Cell[MAX_X + 1, MAX_Y + 1];
+
+        // Variables concernant le robot
+        private int performance;
+        private int rowRobot = 0;
+        private int columnRobot;
 
         // Variables pour gérer l'aléatoire
         private static readonly Random Rnd = new Random();
@@ -58,8 +63,8 @@ namespace tp1_agent_aspirateur
         private void initGrid()
         {
             for (var i = 0; i < MAX_X + 1; ++i)
-            for (var j = 0; j < MAX_Y + 1; ++j)
-                grid[i, j] = new Cell(Cell.State.EMPTY);
+                for (var j = 0; j < MAX_Y + 1; ++j)
+                    grid[i, j] = new Cell(Cell.State.EMPTY);
         }
 
         private void generateDust()
@@ -87,6 +92,7 @@ namespace tp1_agent_aspirateur
             {
                 var x = random(MIN_X, MAX_X);
                 var y = random(MIN_Y, MAX_Y);
+                var sprite = getSprite(cell,x,y);
 
                 switch (cell)
                 {
@@ -96,12 +102,11 @@ namespace tp1_agent_aspirateur
                         {
                             case Cell.State.EMPTY:
                                 grid[x, y].state = Cell.State.DUST;
-                                display(getSprite(Cell.State.DUST), x, y);
+                                display(sprite, x, y);
                                 break;
-
                             case Cell.State.JEWEL:
                                 grid[x, y].state = Cell.State.DUST_AND_JEWEL;
-                                display(getSprite(Cell.State.DUST_AND_JEWEL), x, y);
+                                display(getSprite(Cell.State.DUST_AND_JEWEL,x,y), x, y);
                                 break;
                         }
 
@@ -112,12 +117,11 @@ namespace tp1_agent_aspirateur
                         {
                             case Cell.State.EMPTY:
                                 grid[x, y].state = Cell.State.JEWEL;
-                                display(getSprite(Cell.State.JEWEL), x, y);
+                                display(sprite, x, y);
                                 break;
-
                             case Cell.State.DUST:
                                 grid[x, y].state = Cell.State.DUST_AND_JEWEL;
-                                display(getSprite(Cell.State.DUST_AND_JEWEL), x, y);
+                                display(getSprite(Cell.State.DUST_AND_JEWEL,x,y), x, y);
                                 break;
                         }
 
@@ -126,24 +130,28 @@ namespace tp1_agent_aspirateur
             });
         }
 
-        private Image getSprite(Cell.State state)
+        private Image getSprite(Cell.State state, int x, int y)
         {
             var image = new Image();
             var bitmapImage = new BitmapImage();
-            string uri;
+            var uri = "";
             switch (state)
             {
                 case Cell.State.DUST:
                     uri = "images/dust.jpg";
+                    if (x == rowRobot && y == columnRobot) uri = "images/wall-e-and-dust.jpg";
                     break;
                 case Cell.State.JEWEL:
                     uri = "images/jewels.jpg";
+                    if (x == rowRobot && y == columnRobot) uri = "images/wall-e-and-jewels.jpg";
                     break;
                 case Cell.State.DUST_AND_JEWEL:
                     uri = "images/dust-and-jewels.jpg";
+                    if (x == rowRobot && y == columnRobot) uri = "images/wall-e-and-dust-and-jewels.jpg";
                     break;
-                default:
-                    uri = "";
+                case Cell.State.EMPTY:
+                    uri = "images/empty.jpg";
+                    if (x == rowRobot && y == columnRobot) uri = "images/wall-e.jpg";
                     break;
             }
 
@@ -166,7 +174,71 @@ namespace tp1_agent_aspirateur
         {
             lock (SyncLock)
             {
-                return Rnd.Next(min, max);
+                return Rnd.Next(min, max + 1);
+            }
+        }
+
+        public Cell[,] getGrid()
+        {
+            return grid;
+        }
+
+        public int getPerformance()
+        {
+            return performance;
+        }
+
+        public void robotActionUpdate(string action, int row, int column)
+        {
+            switch (action)
+            {
+                case "clean":
+                    //update performance
+                    switch (grid[row, column].state)
+                    {
+                        case Cell.State.JEWEL:
+                            performance -= 7;
+                            break;
+                        case Cell.State.DUST:
+                            performance += 3;
+                            break;
+                        case Cell.State.DUST_AND_JEWEL:
+                            performance -= 4;
+                            break;
+                    }
+
+                    //clean the grid
+                    grid[row, column].state = Cell.State.EMPTY;
+
+                    //clean the display
+                    var sprite = getSprite(Cell.State.EMPTY,row,column);
+                    display(sprite, row, column);
+                    break;
+
+                case "catch":
+
+                    switch (grid[row, column].state)
+                    {
+                        case Cell.State.JEWEL :
+                            performance += 7; //update performance
+                            grid[row, column].state = Cell.State.EMPTY; //clean the grid
+                            var sprite_ = getSprite(Cell.State.EMPTY,row,column); //clean display
+                            display(sprite_, row, column);
+                            break;
+
+                        case Cell.State.DUST_AND_JEWEL:
+                            performance += 7;
+                            grid[row, column].state = Cell.State.DUST;
+                            var sprite__ = getSprite(Cell.State.DUST,row,column);
+                            display(sprite__, row, column);
+                            break;
+                    }
+                    break;
+
+                case "move":
+                    rowRobot = row;
+                    columnRobot = column;
+                    break;
             }
         }
     }

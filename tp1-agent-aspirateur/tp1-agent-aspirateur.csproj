@@ -50,6 +50,8 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
+    <Compile Include="Sensor.cs" />
+    <Compile Include="Weels.cs" />
     <Page Include="MainWindow.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
@@ -60,6 +62,8 @@
       <SubType>Code</SubType>
     </Compile>
     <Compile Include="Cell.cs" />
+    <Compile Include="Brush.cs" />
+    <Compile Include="Clean.cs" />
     <Compile Include="Environment.cs" />
     <Compile Include="MainWindow.xaml.cs">
       <DependentUpon>MainWindow.xaml</DependentUpon>
@@ -94,6 +98,16 @@
   </ItemGroup>
   <ItemGroup>
     <Resource Include="images\jewels.jpg" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="images\wall-e-and-dust.jpg" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="images\wall-e-and-dust-and-jewels.jpg" />
+    <Resource Include="images\wall-e-and-jewels.jpg" />
+  </ItemGroup>
+  <ItemGroup>
+    <Resource Include="images\empty.png" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>
