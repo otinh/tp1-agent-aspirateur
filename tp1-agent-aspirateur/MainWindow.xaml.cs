@@ -11,7 +11,7 @@ namespace tp1_agent_aspirateur
         {
             InitializeComponent();
 
-            KeyDown += MainWindow.OnKeyDown;
+            KeyDown += onKeyDown;
 
             var environment = new Environment(RoomGrid);
             environment.start();
@@ -20,7 +20,7 @@ namespace tp1_agent_aspirateur
             agent.start();
         }
 
-        private static void OnKeyDown(object sender, KeyEventArgs e)
+        private static void onKeyDown(object sender, KeyEventArgs e)
         { 
             Debug.WriteLine("moving");
             if (e.Key == Key.Space)

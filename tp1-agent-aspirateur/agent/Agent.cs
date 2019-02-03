@@ -1,18 +1,16 @@
-using System;
 using System.Collections.Generic;
 using System.Threading;
-using System.Windows.Input;
 
 namespace tp1_agent_aspirateur
 {
     public class Agent
     {
         private const int BATTERY_MAX = 100;
-        public int myRow;
-        public int myColumn;
+        private int x;
+        private int y;
 
         private Thread thread;
-        private Environment myEnv;
+        private Environment environment;
 
         private Sensor lidar;
         private Wheels wheels;
@@ -21,30 +19,31 @@ namespace tp1_agent_aspirateur
 
         public enum Action
         {
-            MOVEUP,
-            MOVEDOWN,
-            MOVELEFT,
-            MOVERIGHT,
+            MOVE_UP,
+            MOVE_DOWN,
+            MOVE_LEFT,
+            MOVE_RIGHT,
             CLEAN,
             CATCH,
             STAY
         }
 
-        private Cell belief; //cellule la plus procheayant un intérêt pour nous
-        private (Action,Cell) desire; //l'action que l'on désire faire
-        private Action intention; //l'action que l'on va faire au prochain tour pour accomplir le desire
+        private Cell belief; // cellule la plus proche ayant un intérêt pour nous
+        private (Action, Cell) desire; // l'action que l'on désire faire
+        private Action intention; // l'action que l'on va faire au prochain tour pour accomplir le desire
 
-        private int battery = BATTERY_MAX;
+        private readonly int battery = BATTERY_MAX;
         private bool isAlive = true;
 
-        public Agent(Environment myEnv_)
+        public Agent(Environment environment)
         {
-            myEnv = myEnv_;
+            this.environment = environment;
             wheels = new Wheels();
             lidar = new Sensor();
             brush = new Brush();
             cleaner = new Cleaner();
         }
+
         public void start()
         {
             thread = new Thread(update);
@@ -55,7 +54,6 @@ namespace tp1_agent_aspirateur
 
         private void update()
         {
-
             while (isAlive)
             {
                 // Debug.WriteLine($"Agent's battery is at {battery--}%.");
@@ -64,31 +62,32 @@ namespace tp1_agent_aspirateur
                     isAlive = false;
                     // Debug.WriteLine("Agent is dead :(");
                 }
+
                 Thread.Sleep(1500);
             }
         }
 
         public void move()
         {
-            myRow += 1;
-            myColumn += 1;
-            wheels.move(myEnv, myRow, myColumn);
+            x += 1;
+            y += 1;
+            wheels.move(environment, x, y);
         }
 
-        private List<Action> possibleAction()
+        private List<Action> getPossibleActions()
         {
-            List<Action> res = new List<Action>();
+            var actions = new List<Action>();
 
-            if (myRow != 0) res.Add(Action.MOVELEFT);
-            if (myRow != 9) res.Add(Action.MOVERIGHT);
-            if (myColumn != 0) res.Add(Action.MOVEDOWN);
-            if (myColumn != 9) res.Add(Action.MOVEUP);
+            if (x != 0) actions.Add(Action.MOVE_LEFT);
+            if (x != 9) actions.Add(Action.MOVE_RIGHT);
+            if (y != 0) actions.Add(Action.MOVE_DOWN);
+            if (y != 9) actions.Add(Action.MOVE_UP);
 
-            res.Add(Action.CATCH);
-            res.Add(Action.CLEAN);
-            res.Add(Action.STAY);
+            actions.Add(Action.CATCH);
+            actions.Add(Action.CLEAN);
+            actions.Add(Action.STAY);
 
-            return res;
+            return actions;
         }
 
         private bool matchGoal(Action a)
@@ -98,24 +97,24 @@ namespace tp1_agent_aspirateur
             //test pour voir si le move est bien.
             return true;
         }
-        private void doAction(Cell[,] map, Environment myEnv)
+
+        private void doAction(Cell[,] map, Environment environment)
         {
-            switch (map[myRow,myColumn].state)
+            switch (map[x, y].state)
             {
                 case Cell.State.DUST:
-                    cleaner.clean(myEnv, myRow, myColumn);
+                    cleaner.clean(environment, x, y);
                     break;
                 case Cell.State.JEWEL:
-                    brush.catchStuff(myEnv, myRow, myColumn);
+                    brush.pickup(environment, x, y);
                     break;
                 case Cell.State.DUST_AND_JEWEL:
-                    brush.catchStuff(myEnv, myRow, myColumn);
+                    brush.pickup(environment, x, y);
                     break;
                 case Cell.State.EMPTY:
                     //wheels.move(myEnv, myRow + 1, myColumn);
                     break;
             }
         }
-
     }
 }

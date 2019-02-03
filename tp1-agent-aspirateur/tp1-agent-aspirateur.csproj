@@ -50,21 +50,22 @@
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </ApplicationDefinition>
-    <Compile Include="Sensor.cs" />
-    <Compile Include="Wheels.cs" />
+    <Compile Include="agent\Agent.cs" />
+    <Compile Include="agent\effectors\Brush.cs" />
+    <Compile Include="agent\effectors\Clean.cs" />
+    <Compile Include="agent\effectors\Wheels.cs" />
+    <Compile Include="Utils.cs" />
     <Page Include="MainWindow.xaml">
       <Generator>MSBuild:Compile</Generator>
       <SubType>Designer</SubType>
     </Page>
-    <Compile Include="Agent.cs" />
+    <Compile Include="agent\sensors\Sensor.cs" />
     <Compile Include="App.xaml.cs">
       <DependentUpon>App.xaml</DependentUpon>
       <SubType>Code</SubType>
     </Compile>
-    <Compile Include="Cell.cs" />
-    <Compile Include="Brush.cs" />
-    <Compile Include="Clean.cs" />
-    <Compile Include="Environment.cs" />
+    <Compile Include="environment\Cell.cs" />
+    <Compile Include="environment\Environment.cs" />
     <Compile Include="MainWindow.xaml.cs">
       <DependentUpon>MainWindow.xaml</DependentUpon>
       <SubType>Code</SubType>
