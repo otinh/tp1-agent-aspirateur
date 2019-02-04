@@ -4,7 +4,7 @@
     {
         public void pickup(Environment environment, int x, int y)
         {
-            environment.robotActionUpdate(Agent.Action.CATCH, x, y);
+            environment.robotActionUpdate(Agent.Action.PICKUP, x, y);
         }
     }
 }

@@ -13,9 +13,9 @@ namespace tp1_agent_aspirateur
         private Environment environment;
 
         private Sensor lidar;
-        private Wheels wheels;
-        private Cleaner cleaner;
-        private Brush brush;
+        private readonly Wheels wheels;
+        private readonly Cleaner cleaner;
+        private readonly Brush brush;
 
         public enum Action
         {
@@ -24,7 +24,7 @@ namespace tp1_agent_aspirateur
             MOVE_LEFT,
             MOVE_RIGHT,
             CLEAN,
-            CATCH,
+            PICKUP,
             STAY
         }
 
@@ -67,11 +67,34 @@ namespace tp1_agent_aspirateur
             }
         }
 
-        public void move()
+        public void move(Action action)
         {
-            x += 1;
-            y += 1;
-            wheels.move(environment, x, y);
+            switch (action)
+            {
+                case Action.MOVE_UP:
+                    y--;
+                    break;
+                case Action.MOVE_RIGHT:
+                    x++;
+                    break;
+                case Action.MOVE_DOWN:
+                    y++;
+                    break;
+                case Action.MOVE_LEFT:
+                    x--;
+                    break;
+            }
+            wheels.move(environment, action);
+        }
+
+        public void clean()
+        {
+            cleaner.clean(environment, x, y);
+        }
+
+        public void pickup()
+        {
+            brush.pickup(environment, x, y);
         }
 
         private List<Action> getPossibleActions()
@@ -83,7 +106,7 @@ namespace tp1_agent_aspirateur
             if (y != 0) actions.Add(Action.MOVE_DOWN);
             if (y != 9) actions.Add(Action.MOVE_UP);
 
-            actions.Add(Action.CATCH);
+            actions.Add(Action.PICKUP);
             actions.Add(Action.CLEAN);
             actions.Add(Action.STAY);
 

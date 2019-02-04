@@ -1,5 +1,4 @@
-﻿using System.Diagnostics;
-using System.Windows.Input;
+﻿using System.Windows.Input;
 
 namespace tp1_agent_aspirateur
 {
@@ -21,11 +20,27 @@ namespace tp1_agent_aspirateur
         }
 
         private static void onKeyDown(object sender, KeyEventArgs e)
-        { 
-            Debug.WriteLine("moving");
-            if (e.Key == Key.Space)
+        {
+            switch (e.Key)
             {
-                agent.move();
+                case Key.Up:
+                    agent.move(Agent.Action.MOVE_UP);
+                    break;
+                case Key.Right:
+                    agent.move(Agent.Action.MOVE_RIGHT);
+                    break;
+                case Key.Down:
+                    agent.move(Agent.Action.MOVE_DOWN);
+                    break;
+                case Key.Left:
+                    agent.move(Agent.Action.MOVE_LEFT);
+                    break;
+                case Key.Space:
+                    agent.clean();
+                    break;
+                case Key.C:
+                    agent.pickup();
+                    break;
             }
         }
     }

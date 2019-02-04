@@ -189,16 +189,19 @@ namespace tp1_agent_aspirateur
                 case Cell.State.JEWEL when action == CLEAN:
                     performance -= 7;
                     break;
-                case Cell.State.JEWEL when action == CATCH:
+                case Cell.State.JEWEL when action == PICKUP:
                     performance += 7;
                     break;
-                case Cell.State.DUST:
+                case Cell.State.DUST when action == CLEAN:
                     performance += 3;
+                    break;
+                case Cell.State.DUST when action == PICKUP:
+                    performance += 0;
                     break;
                 case Cell.State.DUST_AND_JEWEL when action == CLEAN:
                     performance -= 4;
                     break;
-                case Cell.State.DUST_AND_JEWEL when action == CATCH:
+                case Cell.State.DUST_AND_JEWEL when action == PICKUP:
                     performance += 7;
                     break;
                 case Cell.State.EMPTY:
@@ -206,6 +209,7 @@ namespace tp1_agent_aspirateur
                 default:
                     throw new ArgumentOutOfRangeException(nameof(cell), cell, null);
             }
+            Debug.WriteLine($"Performance: {performance}");
         }
 
         public void robotActionUpdate(Agent.Action action, int x, int y)
@@ -213,31 +217,27 @@ namespace tp1_agent_aspirateur
             switch (action)
             {
                 case CLEAN:
+                    Debug.WriteLine("Action: Clean");
                     updatePerformance(grid[x, y], CLEAN);
-                    grid[x, y].state = Cell.State.EMPTY;
-
-                    // TODO: gérer le thread
-                    //clean the display
-                    var sprite = getSprite(Cell.State.EMPTY, x, y);
-                    display(sprite, x, y);
+                    
+                    clearCell(x, y);
+                    display(getSprite(Cell.State.EMPTY, x, y), x, y);
                     break;
 
-                case CATCH:
-                    updatePerformance(grid[x, y], CATCH);
+                case PICKUP:
+                    Debug.WriteLine("Action: Pickup");
+                    updatePerformance(grid[x, y], PICKUP);
+                    
                     switch (grid[x, y].state)
                     {
                         case Cell.State.JEWEL:
-                            grid[x, y].state = Cell.State.EMPTY;
-                            var sprite_ = getSprite(Cell.State.EMPTY, x, y);
-                            // TODO: gérer le thread
-                            display(sprite_, x, y);
+                            clearCell(x, y);
+                            display(getSprite(Cell.State.EMPTY, x, y), x, y);
                             break;
 
                         case Cell.State.DUST_AND_JEWEL:
-                            grid[x, y].state = Cell.State.DUST;
-                            var sprite__ = getSprite(Cell.State.DUST, x, y);
-                            // TODO: gérer le thread
-                            display(sprite__, x, y);
+                            clearCell(x, y);
+                            display(getSprite(Cell.State.DUST, x, y), x, y);
                             break;
                     }
 
@@ -249,17 +249,24 @@ namespace tp1_agent_aspirateur
                 case MOVE_RIGHT:
                     Application.Current.Dispatcher.Invoke(() =>
                     {
+                        // Efface le sprite du robot dans l'ancienne case
                         var originSprite = getSprite(grid[xRobot, yRobot].state, xRobot, yRobot, true);
                         display(originSprite, xRobot, yRobot);
 
-                        xRobot = x;
-                        yRobot = y;
+                        xRobot += x;
+                        yRobot += y;
 
-                        var destinationSprite = getSprite(grid[x, y].state, x, y);
-                        display(destinationSprite, x, y);
+                        // Affiche le sprite du robot dans la nouvelle case
+                        var destinationSprite = getSprite(grid[xRobot, yRobot].state, xRobot, yRobot);
+                        display(destinationSprite, xRobot, yRobot);
                     });
                     break;
             }
+        }
+
+        private void clearCell(int x, int y)
+        {
+            grid[x, y].state = Cell.State.EMPTY;
         }
     }
 }
