@@ -50,6 +50,8 @@ namespace tp1_agent_aspirateur
         private int performance;
         private Position robotPosition = new Position();
 
+        private static int turn;
+
         public Environment(Grid gridDisplay)
         {
             this.gridDisplay = gridDisplay;
@@ -69,12 +71,11 @@ namespace tp1_agent_aspirateur
         // Boucle lancée à chaque tour, avec 500ms de délai entre chacun de ces tours
         private void update()
         {
-            var turn = 0;
             while (true)
             {
                 generateDust();
                 generateJewel();
-                ++turn;
+                turn++;
                 Thread.Sleep(500);
             }
         }
@@ -121,11 +122,6 @@ namespace tp1_agent_aspirateur
         private void display(Cell.State state, Position position, bool displayRobot = false)
         {
             var sprite = getSprite(state, position, displayRobot);
-            display(sprite, position);
-        }
-
-        private void display(UIElement sprite, Position position)
-        {
             Grid.SetColumn(sprite, position.x);
             Grid.SetRow(sprite, position.y);
             gridDisplay.Children.Add(sprite);
@@ -158,6 +154,61 @@ namespace tp1_agent_aspirateur
                 default:
                     throw new ArgumentOutOfRangeException(nameof(action), action, null);
             }
+        }
+
+        private void doClean(Position position)
+        {
+            Debug.WriteLine("Action: Clean");
+
+            updatePerformance(CLEAN, position);
+            setState(EMPTY, position);
+            display(position);
+        }
+
+        private void doPickup(Position position)
+        {
+            Debug.WriteLine("Action: Pickup");
+
+            updatePerformance(PICKUP, position);
+
+            var currentState = getState(position);
+            switch (currentState)
+            {
+                case JEWEL:
+                    setState(EMPTY, position);
+                    display(position);
+                    break;
+                    
+                case DUST_AND_JEWEL:
+                    setState(DUST, position);
+                    display(position);
+                    break;
+
+                case EMPTY:
+                case DUST:
+                    break;
+
+                default:
+                    throw new ArgumentOutOfRangeException();
+            }
+        }
+
+        private void doMove(Position position)
+        {
+            Debug.WriteLine("Action: Moving");
+
+            Application.Current.Dispatcher.Invoke(() =>
+            {
+                // Efface le sprite du robot dans l'ancienne case
+                var previousCellState = getState(robotPosition);
+                display(previousCellState, robotPosition, true);
+
+                robotPosition.update(position);
+
+                // Affiche le sprite du robot dans la nouvelle case
+                var nextCellState = getState(robotPosition);
+                display(nextCellState, robotPosition);
+            });
         }
 
         private void updatePerformance(Agent.Action action, Position position)
@@ -193,51 +244,6 @@ namespace tp1_agent_aspirateur
             }
 
             Debug.WriteLine($"Performance: {performance}");
-        }
-
-        private void doClean(Position position)
-        {
-            Debug.WriteLine("Action: Clean");
-
-            updatePerformance(CLEAN, position);
-            setState(EMPTY, position);
-            display(position);
-        }
-
-        private void doPickup(Position position)
-        {
-            Debug.WriteLine("Action: Pickup");
-
-            updatePerformance(PICKUP, position);
-
-            if (getState(position) == JEWEL)
-            {
-                setState(EMPTY, position);
-                display(position);
-            }
-            else if (getState(position) == DUST_AND_JEWEL)
-            {
-                setState(EMPTY, position);
-                display(position);
-            }
-        }
-
-        private void doMove(Position position)
-        {
-            Debug.WriteLine("Action: Moving");
-
-            Application.Current.Dispatcher.Invoke(() =>
-            {
-                // Efface le sprite du robot dans l'ancienne case
-                var previousCellState = getState(robotPosition);
-                display(previousCellState, robotPosition, true);
-
-                robotPosition.update(position);
-
-                // Affiche le sprite du robot dans la nouvelle case
-                var nextCellState = getState(robotPosition);
-                display(nextCellState, robotPosition);
-            });
         }
 
         /* ------------------------------------------------------------------------- */
@@ -278,10 +284,12 @@ namespace tp1_agent_aspirateur
                 getCell(position).state = s;
             }
 
+            var currentState = getState(position);
+
             switch (state)
             {
-                case DUST when getState(position) == JEWEL:
-                case JEWEL when getState(position) == DUST:
+                case DUST when currentState == JEWEL || currentState == DUST_AND_JEWEL:
+                case JEWEL when currentState == DUST || currentState == DUST_AND_JEWEL:
                     Set(DUST_AND_JEWEL);
                     break;
 
