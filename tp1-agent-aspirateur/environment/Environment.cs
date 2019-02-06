@@ -238,14 +238,14 @@ namespace tp1_agent_aspirateur
 
         /* ------------------------------------------------------------------------- */
 
-        public Cell[,] getGrid()
-        {
-            return grid;
-        }
-
         private Cell getCell(Position position)
         {
             return grid[position.x, position.y];
+        }
+
+        public Cell[,] getGrid()
+        {
+            return grid;
         }
 
         private Image getSprite(Cell.State state, Position position, bool displayRobot = false)
@@ -271,38 +271,21 @@ namespace tp1_agent_aspirateur
         {
             void Set(Cell.State s)
             {
-                grid[position.x, position.y].state = s;
+                getCell(position).state = s;
             }
 
             switch (state)
             {
-                case DUST when getState(position) == EMPTY:
-                    Set(state);
-                    break;
-
                 case DUST when getState(position) == JEWEL:
-                    Set(DUST_AND_JEWEL);
-                    break;
-
-                case JEWEL when getState(position) == EMPTY:
-                    Set(state);
-                    break;
-
                 case JEWEL when getState(position) == DUST:
                     Set(DUST_AND_JEWEL);
                     break;
 
                 case EMPTY:
-                    Set(EMPTY);
-                    break;
-
                 case DUST:
-                    break;
-
                 case JEWEL:
-                    break;
-
                 case DUST_AND_JEWEL:
+                    Set(state);
                     break;
 
                 default:
