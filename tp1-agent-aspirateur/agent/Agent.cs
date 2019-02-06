@@ -16,6 +16,7 @@ namespace tp1_agent_aspirateur
         // Fil d'exécution et environnement auquel l'agent est lié
         private Thread thread;
         private readonly Environment environment;
+        private const int UPDATE_TIME = 1500;
 
         // Les différents senseurs et effecteurs
         private Sensor lidar;
@@ -55,7 +56,6 @@ namespace tp1_agent_aspirateur
         public void start()
         {
             thread = new Thread(update);
-
             thread.SetApartmentState(ApartmentState.STA);
             thread.Start();
         }
@@ -64,34 +64,62 @@ namespace tp1_agent_aspirateur
         {
             while (isAlive)
             {
-                if (battery == 0)
-                {
-                    isAlive = false;
-                    // Debug.WriteLine("Agent is dead :(");
-                }
+                observe(environment);
+                updateState(environment);
+                
+                var action = chooseAction();
+                doAction(action);
+                
+                checkBatteryLevel();
+                Thread.Sleep(UPDATE_TIME);
+            }
+        }
 
-                Thread.Sleep(1500);
+        private void observe(Environment env)
+        {
+            throw new NotImplementedException();
+        }
+
+        private void updateState(Environment env)
+        {
+            throw new NotImplementedException();
+        }
+
+        private Action chooseAction()
+        {
+            throw new NotImplementedException();
+        }
+
+        private void doAction(Action action)
+        {
+            switch (action)
+            {
+                case Action.MOVE_UP:
+                case Action.MOVE_RIGHT:
+                case Action.MOVE_DOWN:
+                case Action.MOVE_LEFT:
+                    move(action);
+                    break;
+
+                case Action.CLEAN:
+                    clean();
+                    break;
+
+                case Action.PICKUP:
+                    pickup();
+                    break;
+
+                case Action.STAY:
+                    break;
+
+                default:
+                    throw new ArgumentOutOfRangeException(nameof(action), action, null);
             }
         }
 
         public void move(Action action)
         {
-            switch (action)
-            {
-                case Action.MOVE_UP:
-                    position.y--;
-                    break;
-                case Action.MOVE_RIGHT:
-                    position.x++;
-                    break;
-                case Action.MOVE_DOWN:
-                    position.y++;
-                    break;
-                case Action.MOVE_LEFT:
-                    position.x--;
-                    break;
-            }
-
+            updateRobotPosition(action);
             consumeBattery();
             wheels.move(environment, action);
         }
@@ -108,10 +136,44 @@ namespace tp1_agent_aspirateur
             brush.pickup(environment, position);
         }
 
+        private void updateRobotPosition(Action action)
+        {
+            switch (action)
+            {
+                case Action.MOVE_UP:
+                    position.y--;
+                    break;
+                case Action.MOVE_RIGHT:
+                    position.x++;
+                    break;
+                case Action.MOVE_DOWN:
+                    position.y++;
+                    break;
+                case Action.MOVE_LEFT:
+                    position.x--;
+                    break;
+                case Action.CLEAN:
+                case Action.PICKUP:
+                case Action.STAY:
+                    break;
+                default:
+                    throw new ArgumentOutOfRangeException(nameof(action), action, null);
+            }
+        }
+
         private void consumeBattery()
         {
             battery--;
             Debug.WriteLine($"Battery: {battery}%");
+        }
+
+        private void checkBatteryLevel()
+        {
+            if (battery == 0)
+            {
+                isAlive = false;
+                // Debug.WriteLine("Agent is dead :(");
+            }
         }
 
         private List<Action> getPossibleActions()
@@ -136,28 +198,6 @@ namespace tp1_agent_aspirateur
 
             //test pour voir si le move est bien.
             return true;
-        }
-
-        private void doAction(Environment.Position position)
-        {
-            switch (environment.getState(position))
-            {
-                case Cell.State.DUST:
-                    clean();
-                    break;
-                
-                case Cell.State.JEWEL:
-                case Cell.State.DUST_AND_JEWEL:
-                    pickup();
-                    break;
-                
-                case Cell.State.EMPTY:
-                    //wheels.move(myEnv, myRow + 1, myColumn);
-                    break;
-                
-                default:
-                    throw new ArgumentOutOfRangeException();
-            }
         }
     }
 }

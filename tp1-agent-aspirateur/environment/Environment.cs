@@ -45,6 +45,7 @@ namespace tp1_agent_aspirateur
         private Thread thread;
         private readonly Grid gridDisplay;
         private readonly Cell[,] grid = new Cell[MAX_X + 1, MAX_Y + 1];
+        private const int UPDATE_TIME = 500;
 
         // Variables concernant le robot
         private int performance;
@@ -76,7 +77,7 @@ namespace tp1_agent_aspirateur
                 generateDust();
                 generateJewel();
                 turn++;
-                Thread.Sleep(500);
+                Thread.Sleep(UPDATE_TIME);
             }
         }
 
@@ -272,7 +273,7 @@ namespace tp1_agent_aspirateur
             return image;
         }
 
-        public Cell.State getState(Position position)
+        private Cell.State getState(Position position)
         {
             return getCell(position).state;
         }
