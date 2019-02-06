@@ -2,9 +2,9 @@
 {
     public class Brush
     {
-        public void pickup(Environment environment, int x, int y)
+        public void pickup(Environment environment, Environment.Position position)
         {
-            environment.robotActionUpdate(Agent.Action.PICKUP, x, y);
+            environment.updateRobotAction(Agent.Action.PICKUP, position);
         }
     }
 }

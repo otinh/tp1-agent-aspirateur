@@ -31,8 +31,5 @@
             <RowDefinition />
         </Grid.RowDefinitions>
         <Image Source="images/wall-e.jpg" />
-        <Image Source="images/dust.jpg" Grid.Column="5" Grid.Row="5" />
-        <Image Source="images/jewels.jpg" Grid.Column="6" Grid.Row="3" />
-        <Image Source="images/dust-and-jewels.jpg" Grid.Column="2" Grid.Row="4" />
     </Grid>
 </Window>

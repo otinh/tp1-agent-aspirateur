@@ -1,22 +1,16 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace tp1_agent_aspirateur
+﻿namespace tp1_agent_aspirateur
 {
     public class Sensor
     {
 
-        public Cell[,] perceptMap(Environment myEnv)
+        public Cell[,] perceptMap(Environment environment)
         {
-            return myEnv.getGrid();
+            return environment.getGrid();
         }
 
-        public void readPerformance(Environment myEnv)
+        public void readPerformance(Environment environment)
         {
-            myEnv.getPerformance();
+            environment.getPerformance();
         }
     }
 }

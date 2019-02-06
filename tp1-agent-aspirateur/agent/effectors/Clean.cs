@@ -2,9 +2,9 @@
 {
     public class Cleaner
     {
-        public void clean(Environment environment, int x, int y)
+        public void clean(Environment environment, Environment.Position position)
         {
-            environment.robotActionUpdate(Agent.Action.CLEAN, x, y);
+            environment.updateRobotAction(Agent.Action.CLEAN, position);
         }
     }
 }
