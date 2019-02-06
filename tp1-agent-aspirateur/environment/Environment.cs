@@ -157,6 +157,24 @@ namespace tp1_agent_aspirateur
             }
         }
 
+        private void doMove(Position position)
+        {
+            Debug.WriteLine("Action: Moving");
+
+            Application.Current.Dispatcher.Invoke(() =>
+            {
+                // Efface le sprite du robot dans l'ancienne case
+                var previousCellState = getState(robotPosition);
+                display(previousCellState, robotPosition, true);
+
+                robotPosition.update(position);
+
+                // Affiche le sprite du robot dans la nouvelle case
+                var nextCellState = getState(robotPosition);
+                display(nextCellState, robotPosition);
+            });
+        }
+
         private void doClean(Position position)
         {
             Debug.WriteLine("Action: Clean");
@@ -192,24 +210,6 @@ namespace tp1_agent_aspirateur
                 default:
                     throw new ArgumentOutOfRangeException();
             }
-        }
-
-        private void doMove(Position position)
-        {
-            Debug.WriteLine("Action: Moving");
-
-            Application.Current.Dispatcher.Invoke(() =>
-            {
-                // Efface le sprite du robot dans l'ancienne case
-                var previousCellState = getState(robotPosition);
-                display(previousCellState, robotPosition, true);
-
-                robotPosition.update(position);
-
-                // Affiche le sprite du robot dans la nouvelle case
-                var nextCellState = getState(robotPosition);
-                display(nextCellState, robotPosition);
-            });
         }
 
         private void updatePerformance(Agent.Action action, Position position)
