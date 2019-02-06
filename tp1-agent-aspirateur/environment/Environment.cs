@@ -109,8 +109,13 @@ namespace tp1_agent_aspirateur
                 );
 
                 setState(state, randomPosition);
-                display(getState(randomPosition), randomPosition);
+                display(randomPosition);
             });
+        }
+
+        private void display(Position position)
+        {
+            display(getState(position), position);
         }
 
         private void display(Cell.State state, Position position, bool displayRobot = false)
@@ -195,9 +200,8 @@ namespace tp1_agent_aspirateur
             Debug.WriteLine("Action: Clean");
 
             updatePerformance(CLEAN, position);
-
             setState(EMPTY, position);
-            display(EMPTY, position);
+            display(position);
         }
 
         private void doPickup(Position position)
@@ -209,12 +213,12 @@ namespace tp1_agent_aspirateur
             if (getState(position) == JEWEL)
             {
                 setState(EMPTY, position);
-                display(EMPTY, position);
+                display(position);
             }
             else if (getState(position) == DUST_AND_JEWEL)
             {
                 setState(EMPTY, position);
-                display(DUST, position);
+                display(position);
             }
         }
 
