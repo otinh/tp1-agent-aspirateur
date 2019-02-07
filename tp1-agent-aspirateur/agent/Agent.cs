@@ -1,6 +1,8 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Linq;
 using System.Threading;
 using static tp1_agent_aspirateur.Environment;
 
@@ -52,7 +54,7 @@ namespace tp1_agent_aspirateur
         private (Cell, int) desire;
 
         // Action finale souhaitée sur la cellule
-        private Action intention;
+        private Stack<Action> intention;
 
         public Agent(Environment environment, Exploration exploration = Exploration.BFS)
         {
@@ -96,7 +98,7 @@ namespace tp1_agent_aspirateur
         {
             belief = getBelief(perceivedGrid);
             desire = getDesire(belief);
-            intention = getIntention(desire);
+            intention = getIntention(desire, perceivedGrid);
         }
 
         // Retourne la liste de toutes les cellules non vides perçues par l'agent
@@ -113,23 +115,23 @@ namespace tp1_agent_aspirateur
         }
 
         /*
-         * Performance potentielle = (Gain en performance de l'action) - (Coût de distance et de l'action en électricité)
          * Retourne la cellule non-vide la mieux évaluée et sa performance potentielle.
          * Si l'agent se trouve déjà sur une case non-vide elle deviendra sa priorité.
+         * Performance potentielle = (Gain en performance de l'action) - (Coût de distance et de l'action en électricité)
          */
-        private (Cell, int) getDesire(IEnumerable<Cell> cells)
+        private (Cell, int) getDesire(IEnumerable<Cell> nonEmptyCells)
         {
             var desiredCell = new Cell();
             var desiredPerformance = int.MinValue;
-            
-            foreach (var cell in cells)
+
+            foreach (var cell in nonEmptyCells)
             {
                 var potential = getPotential(cell);
-                
+
                 var distance = Utils.getDistance(position, cell.position);
                 var actionCost = cell.state == Cell.State.DUST_AND_JEWEL ? 2 : 1;
                 var cost = distance + actionCost;
-                
+
                 var performance = potential - cost;
 
                 // L'agent se trouve déjà sur une case non-vide.
@@ -144,27 +146,85 @@ namespace tp1_agent_aspirateur
             return (desiredCell, desiredPerformance);
         }
 
-        // Retourne l'action finale souhaitée sur la cellule désirée.
-        // TODO: peut-être plutôt implémenter une List<Action> qu'on construit avec les algorithmes d'exploration ?
-        private static Action getIntention((Cell, int) desire)
+        // Retourne les actions que va effectuer l'agent pour atteindre son but.
+        private Stack<Action> getIntention((Cell, int) desiredCell, Cell[,] perceivedGrid)
         {
-            if (desire.Item2 <= 0) return Action.STAY;
+            var intendedActions = new Stack<Action>();
 
-            switch (desire.Item1.state)
+            if (performanceIsTooLow(desiredCell))
             {
-                case Cell.State.DUST:
-                    return Action.CLEAN;
+                intendedActions.Push(Action.STAY);
+                return intendedActions;
+            }
 
-                case Cell.State.JEWEL:
-                case Cell.State.DUST_AND_JEWEL:
-                    return Action.PICKUP;
-
-                case Cell.State.EMPTY:
-                    return Action.STAY;
-
+            switch (exploration)
+            {
+                case Exploration.BFS:
+                    intendedActions = exploreBfs(desiredCell.Item1, perceivedGrid);
+                    break;
+                case Exploration.GREEDY_SEARCH:
+                    break;
                 default:
                     throw new ArgumentOutOfRangeException();
             }
+
+            Debug.WriteLine("Actions: {");
+            foreach (var action in intendedActions)
+            {
+                Debug.WriteLine(action + ",");
+            }
+
+            Debug.WriteLine("}");
+
+            return intendedActions;
+        }
+
+        private Stack<Action> exploreBfs(Cell destination, Cell[,] grid)
+        {
+            // Initialisation
+            var startCell = getRobotCell(grid);
+            var frontier = new List<Cell> {startCell};
+            var cameFrom = new Dictionary<Cell, Cell> {{startCell, null}};
+
+            // Exploration
+            while (frontier.Count != 0)
+            {
+                var currentCell = frontier[0];
+                frontier.RemoveAt(0);
+
+                if (currentCell == destination) break;
+
+                foreach (var cell in Cell.getNeighborCells(currentCell, grid))
+                {
+                    // Si la cellule n'a pas déjà été visitée, on l'ajoute à la frontière et on ajoute sa provenance.
+                    if (cameFrom.ContainsKey(cell)) continue;
+                    frontier.Add(cell);
+                    cameFrom.Add(cell, currentCell);
+                }
+            }
+
+            // On récupère le chemin en terme de cellules qu'on traduit par des actions.
+            var cellPath = Cell.getCellPath(startCell, destination, cameFrom);
+            var actions = getActions(cellPath);
+
+            return actions;
+        }
+
+        // On traduit L'ensemble des cellules en une série d'actions.
+        private static Stack<Action> getActions(Stack<Cell> path)
+        {
+            var actionPath = new Stack<Action>();
+            while (path.Count > 1)
+            {
+                var current = path.Pop();
+                var next = path.Peek();
+                if (current.isDownFrom(next)) actionPath.Push(Action.MOVE_UP);
+                if (current.isLeftFrom(next)) actionPath.Push(Action.MOVE_RIGHT);
+                if (current.isUpFrom(next)) actionPath.Push(Action.MOVE_DOWN);
+                if (current.isRightFrom(next)) actionPath.Push(Action.MOVE_LEFT);
+            }
+
+            return actionPath;
         }
 
         // Retourne le gain de performance brut en fonction de l'état de la cellule.
@@ -315,6 +375,16 @@ namespace tp1_agent_aspirateur
                 isAlive = false;
                 Debug.WriteLine("Agent is dead :(");
             }
+        }
+
+        private static bool performanceIsTooLow((Cell, int) cell)
+        {
+            return cell.Item2 <= 0;
+        }
+
+        private Cell getRobotCell(Cell[,] grid)
+        {
+            return grid[position.x, position.y];
         }
     }
 }
