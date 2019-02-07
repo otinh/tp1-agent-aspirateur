@@ -14,5 +14,10 @@ namespace tp1_agent_aspirateur
                 return Rnd.Next(min, max + 1);
             }
         }
+
+        public static int getDistance(Environment.Position p1, Environment.Position p2)
+        {
+            return Math.Abs(p1.x - p2.x) + Math.Abs(p1.y - p2.y);
+        }
     }
 }

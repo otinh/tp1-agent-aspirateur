@@ -79,15 +79,17 @@ namespace tp1_agent_aspirateur
                 turn++;
                 Thread.Sleep(UPDATE_TIME);
             }
+
+            // ReSharper disable once FunctionNeverReturns
         }
 
         /* ------------------------------------------------------------------------- */
 
         private void initGrid()
         {
-            for (var i = 0; i < MAX_X + 1; ++i)
-            for (var j = 0; j < MAX_Y + 1; ++j)
-                grid[i, j] = new Cell(EMPTY);
+            for (var x = 0; x < MAX_X + 1; ++x)
+            for (var y = 0; y < MAX_Y + 1; ++y)
+                grid[x, y] = new Cell(x, y);
         }
 
         private void generateDust()
@@ -197,7 +199,7 @@ namespace tp1_agent_aspirateur
                     setState(EMPTY, position);
                     display(position);
                     break;
-                    
+
                 case DUST_AND_JEWEL:
                     setState(DUST, position);
                     display(position);

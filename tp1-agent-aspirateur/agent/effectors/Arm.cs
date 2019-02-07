@@ -1,6 +1,6 @@
 ﻿namespace tp1_agent_aspirateur
 {
-    public class Brush
+    public class Arm
     {
         public void pickup(Environment environment, Environment.Position position)
         {

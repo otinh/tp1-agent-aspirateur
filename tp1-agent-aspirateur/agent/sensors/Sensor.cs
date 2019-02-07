@@ -3,7 +3,7 @@
     public class Sensor
     {
 
-        public Cell[,] perceptMap(Environment environment)
+        public Cell[,] observe(Environment environment)
         {
             return environment.getGrid();
         }

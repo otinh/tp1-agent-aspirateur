@@ -2,15 +2,33 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Threading;
+using static tp1_agent_aspirateur.Environment;
 
 namespace tp1_agent_aspirateur
 {
     public class Agent
     {
+        public enum Action
+        {
+            MOVE_UP,
+            MOVE_RIGHT,
+            MOVE_DOWN,
+            MOVE_LEFT,
+            CLEAN,
+            PICKUP,
+            STAY
+        }
+
+        public enum Exploration
+        {
+            BFS,
+            GREEDY_SEARCH
+        }
+
         // Caractéristiques propres à l'agent
         private const int BATTERY_MAX = 100;
         private int battery = BATTERY_MAX;
-        private Environment.Position position;
+        private Position position;
         private bool isAlive = true;
 
         // Fil d'exécution et environnement auquel l'agent est lié
@@ -19,38 +37,32 @@ namespace tp1_agent_aspirateur
         private const int UPDATE_TIME = 1500;
 
         // Les différents senseurs et effecteurs
-        private Sensor lidar;
+        private readonly Sensor sensor;
         private readonly Wheels wheels;
-        private readonly Cleaner cleaner;
-        private readonly Brush brush;
+        private readonly Vacuum vacuum;
+        private readonly Arm arm;
 
-        public enum Action
-        {
-            MOVE_UP,
-            MOVE_DOWN,
-            MOVE_LEFT,
-            MOVE_RIGHT,
-            CLEAN,
-            PICKUP,
-            STAY
-        }
+        // Algorithme d'exploration
+        private Exploration exploration;
 
-        // Cellule la plus proche ayant un intérêt pour nous
-        private Cell belief;
+        // Perception de l'environnement vue par l'agent
+        private List<Cell> belief;
 
-        // L'action que l'on désire faire
-        private (Action, Cell) desire;
+        // (Cellule la plus proche, gain en performance potentiel)
+        private (Cell, int) desire;
 
-        // L'action que l'on va faire au prochain tour pour accomplir le desire
+        // Action finale souhaitée sur la cellule
         private Action intention;
 
-        public Agent(Environment environment)
+        public Agent(Environment environment, Exploration exploration = Exploration.BFS)
         {
             this.environment = environment;
+            this.exploration = exploration;
+
+            sensor = new Sensor();
             wheels = new Wheels();
-            lidar = new Sensor();
-            brush = new Brush();
-            cleaner = new Cleaner();
+            arm = new Arm();
+            vacuum = new Vacuum();
         }
 
         public void start()
@@ -64,28 +76,151 @@ namespace tp1_agent_aspirateur
         {
             while (isAlive)
             {
-                observe(environment);
-                updateState(environment);
-                
-                var action = chooseAction();
-                doAction(action);
-                
+                var perceivedGrid = observe(environment);
+                updateInternalState(perceivedGrid);
+
+                // var action = chooseAction();
+                // doAction(action);
+
                 checkBatteryLevel();
                 Thread.Sleep(UPDATE_TIME);
             }
         }
 
-        private void observe(Environment env)
+        private Cell[,] observe(Environment env)
         {
-            throw new NotImplementedException();
+            return sensor.observe(env);
         }
 
-        private void updateState(Environment env)
+        private void updateInternalState(Cell[,] perceivedGrid)
         {
-            throw new NotImplementedException();
+            belief = getBelief(perceivedGrid);
+            desire = getDesire(belief);
+            intention = getIntention(desire);
+        }
+
+        // Retourne la liste de toutes les cellules non vides perçues par l'agent
+        private static List<Cell> getBelief(Cell[,] grid)
+        {
+            var nonEmptyCells = new List<Cell>();
+
+            for (var x = 0; x < MAX_X + 1; ++x)
+            for (var y = 0; y < MAX_Y + 1; ++y)
+                if (grid[x, y].state != Cell.State.EMPTY)
+                    nonEmptyCells.Add(grid[x, y]);
+
+            return nonEmptyCells;
+        }
+
+        /*
+         * Performance potentielle = (Gain en performance de l'action) - (Coût de distance et de l'action en électricité)
+         * Retourne la cellule non-vide la mieux évaluée et sa performance potentielle.
+         * Si l'agent se trouve déjà sur une case non-vide elle deviendra sa priorité.
+         */
+        private (Cell, int) getDesire(IEnumerable<Cell> cells)
+        {
+            var desiredCell = new Cell();
+            var maxPerformance = int.MinValue;
+            var performance = 0;
+            
+            foreach (var cell in cells)
+            {
+                var potential = getPotential(cell);
+                
+                var distance = Utils.getDistance(position, cell.position);
+                var actionCost = cell.state == Cell.State.DUST_AND_JEWEL ? 2 : 1;
+                var cost = distance + actionCost;
+                
+                performance = potential - cost;
+
+                if (distance == 0) return (cell, performance);
+
+                if (performance <= maxPerformance) continue;
+                desiredCell = cell;
+                maxPerformance = performance;
+            }
+
+            return (desiredCell, performance);
+        }
+
+        // Retourne l'action finale souhaitée sur la cellule désirée.
+        // TODO: peut-être plutôt implémenter une List<Action> qu'on construit avec les algorithmes d'exploration ?
+        private static Action getIntention((Cell, int) desire)
+        {
+            if (desire.Item2 <= 0) return Action.STAY;
+
+            switch (desire.Item1.state)
+            {
+                case Cell.State.DUST:
+                    return Action.CLEAN;
+
+                case Cell.State.JEWEL:
+                case Cell.State.DUST_AND_JEWEL:
+                    return Action.PICKUP;
+
+                case Cell.State.EMPTY:
+                    return Action.STAY;
+
+                default:
+                    throw new ArgumentOutOfRangeException();
+            }
+        }
+
+        // Retourne le gain de performance brut en fonction de l'état de la cellule.
+        private static int getPotential(Cell cell)
+        {
+            switch (cell.state)
+            {
+                case Cell.State.DUST:
+                    return 3;
+
+                case Cell.State.JEWEL:
+                    return 7;
+
+                case Cell.State.DUST_AND_JEWEL:
+                    return 10;
+
+                case Cell.State.EMPTY:
+                    return 0;
+
+                default:
+                    throw new ArgumentOutOfRangeException();
+            }
         }
 
         private Action chooseAction()
+        {
+            var possibleActions = getPossibleActions();
+
+            foreach (var action in possibleActions)
+            {
+                if (isReachable(action, desire))
+                {
+                    return action;
+                }
+            }
+
+            return Action.STAY;
+        }
+
+        private IEnumerable<Action> getPossibleActions()
+        {
+            var actions = new List<Action>
+            {
+                Action.CLEAN,
+                Action.PICKUP,
+                Action.STAY
+            };
+
+            if (position.x != MIN_X) actions.Add(Action.MOVE_LEFT);
+            if (position.x != MAX_X) actions.Add(Action.MOVE_RIGHT);
+            if (position.y != MIN_Y) actions.Add(Action.MOVE_DOWN);
+            if (position.y != MAX_Y) actions.Add(Action.MOVE_UP);
+
+            return actions;
+        }
+
+        private bool isReachable(Action action, (Cell, int) desire)
         {
             throw new NotImplementedException();
         }
@@ -127,13 +262,13 @@ namespace tp1_agent_aspirateur
         public void clean()
         {
             consumeBattery();
-            cleaner.clean(environment, position);
+            vacuum.clean(environment, position);
         }
 
         public void pickup()
         {
             consumeBattery();
-            brush.pickup(environment, position);
+            arm.pickup(environment, position);
         }
 
         private void updateRobotPosition(Action action)
@@ -143,15 +278,19 @@ namespace tp1_agent_aspirateur
                 case Action.MOVE_UP:
                     position.y--;
                     break;
+
                 case Action.MOVE_RIGHT:
                     position.x++;
                     break;
+
                 case Action.MOVE_DOWN:
                     position.y++;
                     break;
+
                 case Action.MOVE_LEFT:
                     position.x--;
                     break;
+
                 case Action.CLEAN:
                 case Action.PICKUP:
                 case Action.STAY:
@@ -167,37 +306,14 @@ namespace tp1_agent_aspirateur
             Debug.WriteLine($"Battery: {battery}%");
         }
 
+        // TODO: gérer la fin de vie de l'agent
         private void checkBatteryLevel()
         {
             if (battery == 0)
             {
                 isAlive = false;
-                // Debug.WriteLine("Agent is dead :(");
+                Debug.WriteLine("Agent is dead :(");
             }
-        }
-
-        private List<Action> getPossibleActions()
-        {
-            var actions = new List<Action>();
-
-            if (position.x != Environment.MIN_X) actions.Add(Action.MOVE_LEFT);
-            if (position.x != Environment.MAX_X) actions.Add(Action.MOVE_RIGHT);
-            if (position.y != Environment.MIN_Y) actions.Add(Action.MOVE_DOWN);
-            if (position.y != Environment.MAX_Y) actions.Add(Action.MOVE_UP);
-
-            actions.Add(Action.PICKUP);
-            actions.Add(Action.CLEAN);
-            actions.Add(Action.STAY);
-
-            return actions;
-        }
-
-        private bool matchGoal(Action a)
-        {
-            if (a == desire.Item1) return true;
-
-            //test pour voir si le move est bien.
-            return true;
         }
     }
 }

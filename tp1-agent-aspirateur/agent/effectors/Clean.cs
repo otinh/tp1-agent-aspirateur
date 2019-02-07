@@ -1,6 +1,6 @@
 ﻿namespace tp1_agent_aspirateur
 {
-    public class Cleaner
+    public class Vacuum
     {
         public void clean(Environment environment, Environment.Position position)
         {
