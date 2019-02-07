@@ -120,8 +120,7 @@ namespace tp1_agent_aspirateur
         private (Cell, int) getDesire(IEnumerable<Cell> cells)
         {
             var desiredCell = new Cell();
-            var maxPerformance = int.MinValue;
-            var performance = 0;
+            var desiredPerformance = int.MinValue;
             
             foreach (var cell in cells)
             {
@@ -131,16 +130,18 @@ namespace tp1_agent_aspirateur
                 var actionCost = cell.state == Cell.State.DUST_AND_JEWEL ? 2 : 1;
                 var cost = distance + actionCost;
                 
-                performance = potential - cost;
+                var performance = potential - cost;
 
+                // L'agent se trouve déjà sur une case non-vide.
                 if (distance == 0) return (cell, performance);
 
-                if (performance <= maxPerformance) continue;
+                // Stocke la cellule ayant la meilleure performance.
+                if (performance <= desiredPerformance) continue;
                 desiredCell = cell;
-                maxPerformance = performance;
+                desiredPerformance = performance;
             }
 
-            return (desiredCell, performance);
+            return (desiredCell, desiredPerformance);
         }
 
         // Retourne l'action finale souhaitée sur la cellule désirée.
