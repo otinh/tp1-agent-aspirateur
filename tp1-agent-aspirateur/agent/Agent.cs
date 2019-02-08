@@ -81,8 +81,8 @@ namespace tp1_agent_aspirateur
                 var perceivedGrid = observe(environment);
                 updateInternalState(perceivedGrid);
 
-                // var action = chooseAction();
-                // doAction(action);
+                var action = chooseAction();
+                doAction(action);
 
                 checkBatteryLevel();
                 Thread.Sleep(UPDATE_TIME);
@@ -163,6 +163,7 @@ namespace tp1_agent_aspirateur
                     intendedActions = exploreBfs(desiredCell.Item1, perceivedGrid);
                     break;
                 case Exploration.GREEDY_SEARCH:
+                    intendedActions = exploreGreedy(desiredCell.Item1, perceivedGrid);
                     break;
                 default:
                     throw new ArgumentOutOfRangeException();
@@ -171,9 +172,8 @@ namespace tp1_agent_aspirateur
             Debug.WriteLine("Actions: {");
             foreach (var action in intendedActions)
             {
-                Debug.WriteLine(action + ",");
+                Debug.WriteLine(action);
             }
-
             Debug.WriteLine("}");
 
             return intendedActions;
@@ -191,7 +191,8 @@ namespace tp1_agent_aspirateur
             {
                 var currentCell = frontier[0];
                 frontier.RemoveAt(0);
-
+                
+                // TODO: peut-être changer cela, car on implémente une heuristique dans BFS alors que l'on veut du Greedy !
                 if (currentCell == destination) break;
 
                 foreach (var cell in Cell.getNeighborCells(currentCell, grid))
@@ -210,18 +211,26 @@ namespace tp1_agent_aspirateur
             return actions;
         }
 
+        // TODO: faire la fonction Greedy Search
+        private Stack<Action> exploreGreedy(Cell destination, Cell[,] grid)
+        {
+            return null;
+        }
+
         // On traduit L'ensemble des cellules en une série d'actions.
         private static Stack<Action> getActions(Stack<Cell> path)
         {
             var actionPath = new Stack<Action>();
+            actionPath.Push(getAction(path.Peek()));
+
             while (path.Count > 1)
             {
-                var current = path.Pop();
-                var next = path.Peek();
-                if (current.isDownFrom(next)) actionPath.Push(Action.MOVE_UP);
-                if (current.isLeftFrom(next)) actionPath.Push(Action.MOVE_RIGHT);
-                if (current.isUpFrom(next)) actionPath.Push(Action.MOVE_DOWN);
-                if (current.isRightFrom(next)) actionPath.Push(Action.MOVE_LEFT);
+                var cell = path.Pop();
+                var nextCell = path.Peek();
+                if (cell.isBelow(nextCell)) actionPath.Push(Action.MOVE_UP);
+                if (cell.isLeftFrom(nextCell)) actionPath.Push(Action.MOVE_RIGHT);
+                if (cell.isAbove(nextCell)) actionPath.Push(Action.MOVE_DOWN);
+                if (cell.isRightFrom(nextCell)) actionPath.Push(Action.MOVE_LEFT);
             }
 
             return actionPath;
@@ -233,13 +242,13 @@ namespace tp1_agent_aspirateur
             switch (cell.state)
             {
                 case Cell.State.DUST:
-                    return 3;
+                    return 8;
 
                 case Cell.State.JEWEL:
-                    return 7;
+                    return 10;
 
                 case Cell.State.DUST_AND_JEWEL:
-                    return 10;
+                    return 18;
 
                 case Cell.State.EMPTY:
                     return 0;
@@ -251,19 +260,10 @@ namespace tp1_agent_aspirateur
 
         private Action chooseAction()
         {
-            var possibleActions = getPossibleActions();
-
-            foreach (var action in possibleActions)
-            {
-                if (isReachable(action, desire))
-                {
-                    return action;
-                }
-            }
-
-            return Action.STAY;
+            return intention.Pop();
         }
 
+        // TODO: supprimer cette fonction ?
         private IEnumerable<Action> getPossibleActions()
         {
             var actions = new List<Action>
@@ -279,11 +279,6 @@ namespace tp1_agent_aspirateur
             if (position.y != MAX_Y) actions.Add(Action.MOVE_UP);
 
             return actions;
-        }
-
-        private bool isReachable(Action action, (Cell, int) desire)
-        {
-            throw new NotImplementedException();
         }
 
         private void doAction(Action action)
@@ -380,6 +375,32 @@ namespace tp1_agent_aspirateur
         private static bool performanceIsTooLow((Cell, int) cell)
         {
             return cell.Item2 <= 0;
+        }
+
+        private static Action getAction(Cell cell)
+        {
+            Action action;
+
+            switch (cell.state)
+            {
+                case Cell.State.DUST:
+                    action = Action.CLEAN;
+                    break;
+
+                case Cell.State.EMPTY:
+                    action = Action.STAY;
+                    break;
+
+                case Cell.State.JEWEL:
+                case Cell.State.DUST_AND_JEWEL:
+                    action = Action.PICKUP;
+                    break;
+
+                default:
+                    throw new ArgumentOutOfRangeException();
+            }
+
+            return action;
         }
 
         private Cell getRobotCell(Cell[,] grid)

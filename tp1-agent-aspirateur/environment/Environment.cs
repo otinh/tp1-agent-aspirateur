@@ -183,7 +183,7 @@ namespace tp1_agent_aspirateur
 
             updatePerformance(CLEAN, position);
             setState(EMPTY, position);
-            display(position);
+            Application.Current.Dispatcher.Invoke(() => { display(position); });
         }
 
         private void doPickup(Position position)
@@ -197,12 +197,12 @@ namespace tp1_agent_aspirateur
             {
                 case JEWEL:
                     setState(EMPTY, position);
-                    display(position);
+                    Application.Current.Dispatcher.Invoke(() => { display(position); });
                     break;
 
                 case DUST_AND_JEWEL:
                     setState(DUST, position);
-                    display(position);
+                    Application.Current.Dispatcher.Invoke(() => { display(position); });
                     break;
 
                 case EMPTY:
@@ -219,24 +219,24 @@ namespace tp1_agent_aspirateur
             switch (getState(position))
             {
                 case JEWEL when action == CLEAN:
-                    performance -= 7;
+                    performance -= 6;
                     break;
                 case JEWEL when action == PICKUP:
-                    performance += 7;
+                    performance += 10;
                     break;
 
                 case DUST when action == CLEAN:
-                    performance += 3;
+                    performance += 8;
                     break;
                 case DUST when action == PICKUP:
                     performance += 0;
                     break;
 
                 case DUST_AND_JEWEL when action == CLEAN:
-                    performance -= 4;
+                    performance -= 6;
                     break;
                 case DUST_AND_JEWEL when action == PICKUP:
-                    performance += 7;
+                    performance += 10;
                     break;
 
                 case EMPTY:
@@ -291,8 +291,8 @@ namespace tp1_agent_aspirateur
 
             switch (state)
             {
-                case DUST when currentState == JEWEL || currentState == DUST_AND_JEWEL:
-                case JEWEL when currentState == DUST || currentState == DUST_AND_JEWEL:
+                case DUST when currentState == JEWEL:
+                case JEWEL when currentState == DUST:
                     Set(DUST_AND_JEWEL);
                     break;
 

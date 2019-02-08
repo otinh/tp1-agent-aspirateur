@@ -37,7 +37,7 @@ namespace tp1_agent_aspirateur
             return !(c1 == c2);
         }
 
-        public bool isUpFrom(Cell cell)
+        public bool isAbove(Cell cell)
         {
             return position.y < cell.position.y;
         }
@@ -47,7 +47,7 @@ namespace tp1_agent_aspirateur
             return position.x > cell.position.x;
         }
 
-        public bool isDownFrom(Cell cell)
+        public bool isBelow(Cell cell)
         {
             return position.y > cell.position.y;
         }
