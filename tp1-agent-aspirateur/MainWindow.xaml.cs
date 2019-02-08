@@ -1,4 +1,5 @@
-﻿using System.Windows.Input;
+﻿using System;
+using System.Windows.Input;
 
 namespace tp1_agent_aspirateur
 {
@@ -15,8 +16,10 @@ namespace tp1_agent_aspirateur
             var environment = new Environment(RoomGrid);
             environment.start();
 
-            agent = new Agent(environment);
+            agent = new Agent(environment, 1, 3);
             agent.start();
+
+            
         }
 
         private static void onKeyDown(object sender, KeyEventArgs e)

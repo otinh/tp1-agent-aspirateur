@@ -32,6 +32,7 @@ namespace tp1_agent_aspirateur
         private int battery = BATTERY_MAX;
         private Position position;
         private bool isAlive = true;
+        private int n;
 
         // Fil d'exécution et environnement auquel l'agent est lié
         private Thread thread;
@@ -56,10 +57,11 @@ namespace tp1_agent_aspirateur
         // Action finale souhaitée sur la cellule
         private Stack<Action> intention;
 
-        public Agent(Environment environment, Exploration exploration = Exploration.BFS)
+        public Agent(Environment environment, int i, int n_)
         {
             this.environment = environment;
-            this.exploration = exploration;
+            this.exploration = (i == 1 ? Exploration.BFS : Exploration.GREEDY_SEARCH);
+            n = n_;
 
             sensor = new Sensor();
             wheels = new Wheels();
@@ -72,17 +74,26 @@ namespace tp1_agent_aspirateur
             thread = new Thread(update);
             thread.SetApartmentState(ApartmentState.STA);
             thread.Start();
+
+            var perceivedGrid = observe(environment);
+            updateInternalState(perceivedGrid);
         }
 
         private void update()
         {
+            var count = 0;
             while (isAlive)
             {
-                var perceivedGrid = observe(environment);
-                updateInternalState(perceivedGrid);
+                if (count <= n || intention.ToArray().Length == 0)
+                {
+                    var perceivedGrid = observe(environment);
+                    updateInternalState(perceivedGrid);
+                    count = 0;
+                }
 
                 var action = chooseAction();
                 doAction(action);
+                count++;
 
                 checkBatteryLevel();
                 Thread.Sleep(UPDATE_TIME);
@@ -157,6 +168,7 @@ namespace tp1_agent_aspirateur
                 return intendedActions;
             }
 
+
             switch (exploration)
             {
                 case Exploration.BFS:
@@ -199,8 +211,8 @@ namespace tp1_agent_aspirateur
                 {
                     // Si la cellule n'a pas déjà été visitée, on l'ajoute à la frontière et on ajoute sa provenance.
                     if (cameFrom.ContainsKey(cell)) continue;
-                    frontier.Add(cell);
-                    cameFrom.Add(cell, currentCell);
+                    frontier.Add(cell); 
+                    cameFrom.Add(cell, currentCell); //on ajoute tous les voisins alors que certains ne seront pas visités ?
                 }
             }
 
@@ -214,8 +226,39 @@ namespace tp1_agent_aspirateur
         // TODO: faire la fonction Greedy Search
         private Stack<Action> exploreGreedy(Cell destination, Cell[,] grid)
         {
-            return null;
+            // Initialisation
+            var startCell = getRobotCell(grid);
+            var frontier = new List<(Cell,int)> { (startCell, 1000) };
+            var cameFrom = new Dictionary<Cell, Cell> { { startCell, null } };
+
+            // Exploration
+            while (frontier.Count != 0)
+            {
+                var currentCell = frontier[0].Item1;
+                frontier.RemoveAt(0);
+                
+                if (currentCell == destination) break;
+
+
+                foreach (var cell in Cell.getNeighborCells(currentCell, grid))
+                {
+                    // Si la cellule n'a pas déjà été visitée, on l'ajoute à la frontière et on ajoute sa provenance.
+                    if (cameFrom.ContainsKey(cell)) continue;
+                    frontier.Add((cell, Utils.getDistance(destination.position, cell.position)));
+                    cameFrom.Add(cell, currentCell);
+                }
+
+                frontier = sortFrontier(frontier);
+            }
+
+
+            // On récupère le chemin en terme de cellules qu'on traduit par des actions.
+            var cellPath = Cell.getCellPath(startCell, destination, cameFrom);
+            var actions = getActions(cellPath);
+
+            return actions;
         }
+
 
         // On traduit L'ensemble des cellules en une série d'actions.
         private static Stack<Action> getActions(Stack<Cell> path)
@@ -407,5 +450,22 @@ namespace tp1_agent_aspirateur
         {
             return grid[position.x, position.y];
         }
+
+
+        public List<(Cell, int)> sortFrontier(List<(Cell, int)> frontier)
+        {
+            (Cell,int) temp;
+
+            for (int i = 1; i <= frontier.Count; i++)
+                for (int j = 0; j < frontier.Count - i; j++)
+                    if (frontier[j].Item2 > frontier[j + 1].Item2)
+                    {
+                        temp = frontier[j];
+                        frontier[j] = frontier[j + 1];
+                        frontier[j + 1] = temp;
+                    }
+            return frontier;
+        }
     }
+
 }

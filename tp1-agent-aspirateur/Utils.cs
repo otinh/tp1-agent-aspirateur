@@ -19,5 +19,6 @@ namespace tp1_agent_aspirateur
         {
             return Math.Abs(p1.x - p2.x) + Math.Abs(p1.y - p2.y);
         }
+
     }
 }
