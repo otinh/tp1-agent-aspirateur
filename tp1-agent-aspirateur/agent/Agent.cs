@@ -33,7 +33,7 @@ namespace tp1_agent_aspirateur
         private int battery = BATTERY_MAX;
         private Position position;
         private bool isAlive = true;
-        private int n;
+        private readonly int numberOfActions;
 
         // Fil d'exécution et environnement auquel l'agent est lié
         private Thread thread;
@@ -58,11 +58,11 @@ namespace tp1_agent_aspirateur
         // Action finale souhaitée sur la cellule
         private Stack<Action> intention;
 
-        public Agent(Environment environment, Exploration exploration, int n)
+        public Agent(Environment environment, Exploration exploration, int numberOfActions = 3)
         {
             this.environment = environment;
             this.exploration = exploration;
-            this.n = n;
+            this.numberOfActions = numberOfActions;
 
             sensor = new Sensor();
             wheels = new Wheels();
@@ -82,23 +82,31 @@ namespace tp1_agent_aspirateur
 
         private void update()
         {
-            var count = 0;
+            var actionCount = 0;
             while (isAlive)
             {
-                if (count <= n || intention.ToArray().Length == 0)
+                if (shouldUpdateEnvironment(actionCount))
                 {
                     var perceivedGrid = observe(environment);
                     updateInternalState(perceivedGrid);
-                    count = 0;
+                    actionCount = 0;
                 }
 
                 var action = chooseAction();
                 doAction(action);
-                count++;
+                actionCount++;
 
                 checkBatteryLevel();
                 Thread.Sleep(UPDATE_TIME);
             }
+        }
+
+        // L'agent fait appel à ses senseurs dans les cas suivants :
+        // 1. Il a fait un nombre suffisant d'actions au préalable (numberOfActions)
+        // 2. Il n'a pas d'actions à effectuer (intention.Count)
+        private bool shouldUpdateEnvironment(int actionCount)
+        {
+            return actionCount <= numberOfActions || intention.Count == 0;
         }
 
         private Cell[,] observe(Environment env)
@@ -138,16 +146,10 @@ namespace tp1_agent_aspirateur
 
             foreach (var cell in nonEmptyCells)
             {
-                var potential = getPotential(cell);
+                var performance = getPerformance(cell);
 
                 var distance = Utils.getDistance(position, cell.position);
-                var actionCost = cell.state == Cell.State.DUST_AND_JEWEL ? 2 : 1;
-                var cost = distance + actionCost;
-
-                var performance = potential - cost;
-
-                // L'agent se trouve déjà sur une case non-vide.
-                if (distance == 0) return (cell, performance);
+                if (distance == 0) return (cell, performance); // L'agent se trouve déjà sur une case non-vide.
 
                 // Stocke la cellule ayant la meilleure performance.
                 if (performance <= desiredPerformance) continue;
@@ -175,9 +177,11 @@ namespace tp1_agent_aspirateur
                 case Exploration.BFS:
                     intendedActions = exploreBfs(desiredCell.Item1, perceivedGrid);
                     break;
+
                 case Exploration.GREEDY_SEARCH:
                     intendedActions = exploreGreedy(desiredCell.Item1, perceivedGrid);
                     break;
+
                 default:
                     throw new ArgumentOutOfRangeException();
             }
@@ -197,6 +201,7 @@ namespace tp1_agent_aspirateur
         {
             // Initialisation
             var startCell = getRobotCell(grid);
+            var endCell = destination;
             var frontier = new List<Cell> {startCell};
             var cameFrom = new Dictionary<Cell, Cell> {{startCell, null}};
 
@@ -206,21 +211,24 @@ namespace tp1_agent_aspirateur
                 var currentCell = frontier[0];
                 frontier.RemoveAt(0);
 
-                // TODO: peut-être changer cela, car on implémente une heuristique dans BFS alors que l'on veut du Greedy !
-                if (currentCell == destination) break;
+                // Si la case a une performance > 0, cette dernière deviendra la destination de l'agent.
+                if (fitsGoal(currentCell))
+                {
+                    endCell = currentCell;
+                    break;
+                }
 
                 foreach (var cell in Cell.getNeighborCells(currentCell, grid))
                 {
                     // Si la cellule n'a pas déjà été visitée, on l'ajoute à la frontière et on ajoute sa provenance.
                     if (cameFrom.ContainsKey(cell)) continue;
                     frontier.Add(cell);
-                    cameFrom.Add(cell,
-                        currentCell); //on ajoute tous les voisins alors que certains ne seront pas visités ?
+                    cameFrom.Add(cell, currentCell);
                 }
             }
 
             // On récupère le chemin en terme de cellules qu'on traduit par des actions.
-            var cellPath = Cell.getCellPath(startCell, destination, cameFrom);
+            var cellPath = Cell.getCellPath(startCell, endCell, cameFrom);
             var actions = getActions(cellPath);
 
             return actions;
@@ -241,7 +249,6 @@ namespace tp1_agent_aspirateur
 
                 if (currentCell == destination) break;
 
-
                 foreach (var cell in Cell.getNeighborCells(currentCell, grid))
                 {
                     // Si la cellule n'a pas déjà été visitée, on l'ajoute à la frontière et on ajoute sa provenance.
@@ -252,7 +259,6 @@ namespace tp1_agent_aspirateur
 
                 frontier = sortFrontier(frontier);
             }
-
 
             // On récupère le chemin en terme de cellules qu'on traduit par des actions.
             var cellPath = Cell.getCellPath(startCell, destination, cameFrom);
@@ -279,6 +285,26 @@ namespace tp1_agent_aspirateur
             }
 
             return actionPath;
+        }
+
+        // Utilisée pour BFS.
+        // Le goal de l'agent est défini comme devant gagner des points.
+        private bool fitsGoal(Cell cell)
+        {
+            return getPerformance(cell) > 0;
+        }
+
+        // Retourne la performance nette d'une cellule, c'est-à-dire :
+        // Performance nette = (potentiel) - (coût lié à la distance et à l'action)
+        private int getPerformance(Cell cell)
+        {
+            var potential = getPotential(cell);
+
+            var distance = Utils.getDistance(position, cell.position);
+            var actionCost = cell.state == Cell.State.DUST_AND_JEWEL ? 2 : 1;
+            var cost = distance + actionCost;
+
+            return potential - cost;
         }
 
         // Retourne le gain de performance brut en fonction de l'état de la cellule.

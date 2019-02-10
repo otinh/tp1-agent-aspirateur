@@ -15,7 +15,7 @@ namespace tp1_agent_aspirateur
             var environment = new Environment(RoomGrid);
             environment.start();
 
-            agent = new Agent(environment, Agent.Exploration.BFS, 3);
+            agent = new Agent(environment, Agent.Exploration.BFS);
             agent.start();
 
             
