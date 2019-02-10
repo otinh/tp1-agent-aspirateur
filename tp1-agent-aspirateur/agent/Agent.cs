@@ -3,6 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Threading;
 using static tp1_agent_aspirateur.Environment;
 
@@ -57,11 +58,11 @@ namespace tp1_agent_aspirateur
         // Action finale souhaitée sur la cellule
         private Stack<Action> intention;
 
-        public Agent(Environment environment, int i, int n_)
+        public Agent(Environment environment, Exploration exploration, int n)
         {
             this.environment = environment;
-            this.exploration = (i == 1 ? Exploration.BFS : Exploration.GREEDY_SEARCH);
-            n = n_;
+            this.exploration = exploration;
+            this.n = n;
 
             sensor = new Sensor();
             wheels = new Wheels();
@@ -186,6 +187,7 @@ namespace tp1_agent_aspirateur
             {
                 Debug.WriteLine(action);
             }
+
             Debug.WriteLine("}");
 
             return intendedActions;
@@ -203,7 +205,7 @@ namespace tp1_agent_aspirateur
             {
                 var currentCell = frontier[0];
                 frontier.RemoveAt(0);
-                
+
                 // TODO: peut-être changer cela, car on implémente une heuristique dans BFS alors que l'on veut du Greedy !
                 if (currentCell == destination) break;
 
@@ -211,8 +213,9 @@ namespace tp1_agent_aspirateur
                 {
                     // Si la cellule n'a pas déjà été visitée, on l'ajoute à la frontière et on ajoute sa provenance.
                     if (cameFrom.ContainsKey(cell)) continue;
-                    frontier.Add(cell); 
-                    cameFrom.Add(cell, currentCell); //on ajoute tous les voisins alors que certains ne seront pas visités ?
+                    frontier.Add(cell);
+                    cameFrom.Add(cell,
+                        currentCell); //on ajoute tous les voisins alors que certains ne seront pas visités ?
                 }
             }
 
@@ -223,20 +226,19 @@ namespace tp1_agent_aspirateur
             return actions;
         }
 
-        // TODO: faire la fonction Greedy Search
         private Stack<Action> exploreGreedy(Cell destination, Cell[,] grid)
         {
             // Initialisation
             var startCell = getRobotCell(grid);
-            var frontier = new List<(Cell,int)> { (startCell, 1000) };
-            var cameFrom = new Dictionary<Cell, Cell> { { startCell, null } };
+            var frontier = new List<(Cell, int)> {(startCell, 1000)};
+            var cameFrom = new Dictionary<Cell, Cell> {{startCell, null}};
 
             // Exploration
             while (frontier.Count != 0)
             {
                 var currentCell = frontier[0].Item1;
                 frontier.RemoveAt(0);
-                
+
                 if (currentCell == destination) break;
 
 
@@ -304,24 +306,6 @@ namespace tp1_agent_aspirateur
         private Action chooseAction()
         {
             return intention.Pop();
-        }
-
-        // TODO: supprimer cette fonction ?
-        private IEnumerable<Action> getPossibleActions()
-        {
-            var actions = new List<Action>
-            {
-                Action.CLEAN,
-                Action.PICKUP,
-                Action.STAY
-            };
-
-            if (position.x != MIN_X) actions.Add(Action.MOVE_LEFT);
-            if (position.x != MAX_X) actions.Add(Action.MOVE_RIGHT);
-            if (position.y != MIN_Y) actions.Add(Action.MOVE_DOWN);
-            if (position.y != MAX_Y) actions.Add(Action.MOVE_UP);
-
-            return actions;
         }
 
         private void doAction(Action action)
@@ -405,7 +389,6 @@ namespace tp1_agent_aspirateur
             Debug.WriteLine($"Battery: {battery}%");
         }
 
-        // TODO: gérer la fin de vie de l'agent
         private void checkBatteryLevel()
         {
             if (battery == 0)
@@ -451,21 +434,31 @@ namespace tp1_agent_aspirateur
             return grid[position.x, position.y];
         }
 
-
-        public List<(Cell, int)> sortFrontier(List<(Cell, int)> frontier)
+        private static List<(Cell, int)> sortFrontier(List<(Cell, int)> frontier)
         {
-            (Cell,int) temp;
+            (Cell, int) temp;
 
-            for (int i = 1; i <= frontier.Count; i++)
-                for (int j = 0; j < frontier.Count - i; j++)
-                    if (frontier[j].Item2 > frontier[j + 1].Item2)
-                    {
-                        temp = frontier[j];
-                        frontier[j] = frontier[j + 1];
-                        frontier[j + 1] = temp;
-                    }
+            for (var i = 1; i <= frontier.Count; i++)
+            for (var j = 0; j < frontier.Count - i; j++)
+                if (frontier[j].Item2 > frontier[j + 1].Item2)
+                {
+                    temp = frontier[j];
+                    frontier[j] = frontier[j + 1];
+                    frontier[j + 1] = temp;
+                }
+
             return frontier;
         }
-    }
 
+        private void setExploration(Exploration exp)
+        {
+            Debug.WriteLine($"Exploration mode: {exp}");
+            exploration = exp;
+        }
+
+        public void switchExploration()
+        {
+            setExploration(exploration == Exploration.BFS ? Exploration.GREEDY_SEARCH : Exploration.BFS);
+        }
+    }
 }
