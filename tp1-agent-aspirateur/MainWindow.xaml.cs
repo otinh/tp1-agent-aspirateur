@@ -13,12 +13,12 @@ namespace tp1_agent_aspirateur
             KeyDown += onKeyDown;
 
             var environment = new Environment(RoomGrid);
+            linkText(environment);
             environment.start();
 
             agent = new Agent(environment, Agent.Exploration.BFS);
+            linkText(agent);
             agent.start();
-
-            
         }
 
         private static void onKeyDown(object sender, KeyEventArgs e)
@@ -41,6 +41,19 @@ namespace tp1_agent_aspirateur
                     agent.switchExploration();
                     break;
             }
+        }
+
+        private void linkText(Environment e)
+        {
+            e.setTurnText(TurnText);
+            e.setPerformanceText(PerformanceText);
+        }
+        
+        private void linkText(Agent a)
+        {
+            a.setBatteryText(BatteryText);
+            a.setExplorationText(ExplorationText);
+            a.setActionText(ActionText);
         }
     }
 }

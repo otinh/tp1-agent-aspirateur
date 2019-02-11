@@ -2,9 +2,9 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
-using System.Runtime.CompilerServices;
 using System.Threading;
+using System.Windows;
+using System.Windows.Controls;
 using static tp1_agent_aspirateur.Environment;
 
 namespace tp1_agent_aspirateur
@@ -39,6 +39,12 @@ namespace tp1_agent_aspirateur
         private Thread thread;
         private readonly Environment environment;
         private const int UPDATE_TIME = 1500;
+
+        // Texte
+        private TextBlock batteryText;
+        private TextBlock actionText;
+        private Action lastAction;
+        private TextBlock explorationText;
 
         // Les différents senseurs et effecteurs
         private readonly Sensor sensor;
@@ -85,7 +91,7 @@ namespace tp1_agent_aspirateur
             var actionCount = 0;
             while (isAlive)
             {
-                if (shouldUpdateEnvironment(actionCount))
+                if (shouldUpdateEnvironment(actionCount++))
                 {
                     var perceivedGrid = observe(environment);
                     updateInternalState(perceivedGrid);
@@ -94,9 +100,9 @@ namespace tp1_agent_aspirateur
 
                 var action = chooseAction();
                 doAction(action);
-                actionCount++;
 
                 checkBatteryLevel();
+                updateText();
                 Thread.Sleep(UPDATE_TIME);
             }
         }
@@ -331,6 +337,7 @@ namespace tp1_agent_aspirateur
 
         private Action chooseAction()
         {
+            lastAction = intention.Peek();
             return intention.Pop();
         }
 
@@ -485,6 +492,32 @@ namespace tp1_agent_aspirateur
         public void switchExploration()
         {
             setExploration(exploration == Exploration.BFS ? Exploration.GREEDY_SEARCH : Exploration.BFS);
+        }
+
+
+        private void updateText()
+        {
+            Application.Current.Dispatcher.Invoke(() =>
+            {
+                batteryText.Text = $"- Batterie : -\n {battery}%";
+                explorationText.Text = $"- Exploration : -\n {exploration}";
+                actionText.Text = $"- Action : -\n {lastAction}";
+            });
+        }
+
+        public void setBatteryText(TextBlock text)
+        {
+            batteryText = text;
+        }
+
+        public void setExplorationText(TextBlock text)
+        {
+            explorationText = text;
+        }
+        
+        public void setActionText(TextBlock text)
+        {
+            actionText = text;
         }
     }
 }

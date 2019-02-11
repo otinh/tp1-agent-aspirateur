@@ -4,7 +4,7 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         mc:Ignorable="d"
-        Title="Agent Aspirateur" Height="400" Width="400">
+        Title="Agent Aspirateur" Height="400" Width="500">
     <Grid Name="RoomGrid" ShowGridLines="True">
         <Grid.ColumnDefinitions>
             <ColumnDefinition />
@@ -17,6 +17,7 @@
             <ColumnDefinition />
             <ColumnDefinition />
             <ColumnDefinition />
+            <ColumnDefinition Width="Auto" />
         </Grid.ColumnDefinitions>
         <Grid.RowDefinitions>
             <RowDefinition />
@@ -31,5 +32,48 @@
             <RowDefinition />
         </Grid.RowDefinitions>
         <Image Source="images/wall-e.jpg" />
+        <StackPanel Grid.Row="0" Grid.Column="10" >
+            <TextBlock Name="TurnText" DockPanel.Dock="Right">
+                - Tour : -
+                <LineBreak />
+                0
+            </TextBlock>
+        </StackPanel>
+        <StackPanel Grid.Row="1" Grid.Column="10">
+            <TextBlock Name="PerformanceText" DockPanel.Dock="Right">
+                - Performance : -
+                <LineBreak />
+                100
+            </TextBlock>
+        </StackPanel>
+        <StackPanel Grid.Row="2" Grid.Column="10">
+            <TextBlock Name="BatteryText" DockPanel.Dock="Right">
+                - Battery : -
+                <LineBreak />
+                100
+            </TextBlock>
+        </StackPanel>
+        <StackPanel Grid.Row="3" Grid.Column="10">
+            <TextBlock Name="ExplorationText" DockPanel.Dock="Right">
+                - Exploration : -
+                <LineBreak />
+                BFS
+            </TextBlock>
+        </StackPanel>
+        <StackPanel Grid.Row="4" Grid.Column="10">
+            <TextBlock Name="ActionText" DockPanel.Dock="Right">
+                - Action : -
+                <LineBreak />
+                STAY
+            </TextBlock>
+        </StackPanel>
+        <StackPanel Grid.Row="9" Grid.Column="10">
+            <TextBlock DockPanel.Dock="Right">
+                "Espace" pour
+                <LineBreak/>
+                changer 
+                d'algorithme
+            </TextBlock>
+        </StackPanel>
     </Grid>
 </Window>

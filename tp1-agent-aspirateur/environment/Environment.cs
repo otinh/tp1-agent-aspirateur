@@ -47,6 +47,10 @@ namespace tp1_agent_aspirateur
         private readonly Cell[,] grid = new Cell[MAX_X + 1, MAX_Y + 1];
         private const int UPDATE_TIME = 500;
 
+        // Texte
+        private TextBlock turnText;
+        private TextBlock performanceText;
+        
         // Variables concernant le robot
         private int performance;
         private Position robotPosition = new Position();
@@ -77,12 +81,34 @@ namespace tp1_agent_aspirateur
                 generateDust();
                 generateJewel();
                 turn++;
+                updateText();
                 Thread.Sleep(UPDATE_TIME);
             }
 
             // ReSharper disable once FunctionNeverReturns
         }
 
+        /* ------------------------------------------------------------------------- */
+
+        private void updateText()
+        {
+            Application.Current.Dispatcher.Invoke(() =>
+            {
+                turnText.Text = $"- Tour (env) : -\n {turn}";
+                performanceText.Text = $"- Performance : -\n {performance}";
+            });
+        }
+        
+        public void setTurnText(TextBlock text)
+        {
+            turnText = text;
+        }
+        
+        public void setPerformanceText(TextBlock text)
+        {
+            performanceText = text;
+        }
+        
         /* ------------------------------------------------------------------------- */
 
         private void initGrid()
