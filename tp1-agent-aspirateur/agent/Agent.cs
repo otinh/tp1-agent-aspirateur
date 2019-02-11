@@ -91,7 +91,7 @@ namespace tp1_agent_aspirateur
             var actionCount = 0;
             while (isAlive)
             {
-                if (shouldUpdateEnvironment(actionCount++))
+                if (shouldUseSensorAgain(actionCount++))
                 {
                     var perceivedGrid = observe(environment);
                     updateInternalState(perceivedGrid);
@@ -110,7 +110,7 @@ namespace tp1_agent_aspirateur
         // L'agent fait appel à ses senseurs dans les cas suivants :
         // 1. Il a fait un nombre suffisant d'actions au préalable (numberOfActions)
         // 2. Il n'a pas d'actions à effectuer (intention.Count)
-        private bool shouldUpdateEnvironment(int actionCount)
+        private bool shouldUseSensorAgain(int actionCount)
         {
             return actionCount <= numberOfActions || intention.Count == 0;
         }
