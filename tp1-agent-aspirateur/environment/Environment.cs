@@ -371,5 +371,11 @@ namespace tp1_agent_aspirateur
                     throw new ArgumentOutOfRangeException(nameof(state), state, null);
             }
         }
+
+        public void resetPerformance()
+        {
+            performance = 0;
+        }
     }
+
 }

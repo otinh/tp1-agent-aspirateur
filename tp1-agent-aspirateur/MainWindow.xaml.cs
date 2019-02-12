@@ -16,9 +16,10 @@ namespace tp1_agent_aspirateur
             linkText(environment);
             environment.start();
 
-            agent = new Agent(environment, Agent.Exploration.BFS);
+            agent = new Agent(environment, Agent.Exploration.BFS, 1);
             linkText(agent);
             agent.start();
+            
         }
 
         private static void onKeyDown(object sender, KeyEventArgs e)
@@ -54,6 +55,7 @@ namespace tp1_agent_aspirateur
             a.setBatteryText(BatteryText);
             a.setExplorationText(ExplorationText);
             a.setActionText(ActionText);
+            a.setLearningText(LearningText);
         }
     }
 }

@@ -8,9 +8,14 @@
             return environment.getGrid();
         }
 
-        public void readPerformance(Environment environment)
+        public int readPerformance(Environment environment)
         {
-            environment.getPerformance();
+            return environment.getPerformance();
+        }
+
+        public void resetPerformance(Environment environment)
+        {
+            environment.resetPerformance();
         }
     }
 }

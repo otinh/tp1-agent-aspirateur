@@ -75,5 +75,12 @@
                 d'algorithme
             </TextBlock>
         </StackPanel>
+        <StackPanel Grid.Row="5" Grid.Column="10">
+            <TextBlock Name = "LearningText"  DockPanel.Dock="Right">
+                - nOfActions : -
+                <LineBreak/>
+                1
+            </TextBlock>
+        </StackPanel>
     </Grid>
 </Window>

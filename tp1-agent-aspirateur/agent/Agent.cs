@@ -33,7 +33,7 @@ namespace tp1_agent_aspirateur
         private int battery = BATTERY_MAX;
         private Position position;
         private bool isAlive = true;
-        private readonly int numberOfActions;
+        private int numberOfActions;
 
         // Fil d'exécution et environnement auquel l'agent est lié
         private Thread thread;
@@ -43,6 +43,7 @@ namespace tp1_agent_aspirateur
         // Texte
         private TextBlock batteryText;
         private TextBlock actionText;
+        private TextBlock learningText;
         private Action lastAction;
         private TextBlock explorationText;
 
@@ -64,11 +65,15 @@ namespace tp1_agent_aspirateur
         // Action finale souhaitée sur la cellule
         private Stack<Action> intention;
 
-        public Agent(Environment environment, Exploration exploration, int numberOfActions = 3)
+        //Tableau contenant la performance associée au nombre d'actions effectuées avant nouvelle exploration
+        private List<(int, int)> learningList;
+
+        public Agent(Environment environment, Exploration exploration, int numberOfActions)
         {
             this.environment = environment;
             this.exploration = exploration;
             this.numberOfActions = numberOfActions;
+
 
             sensor = new Sensor();
             wheels = new Wheels();
@@ -82,6 +87,9 @@ namespace tp1_agent_aspirateur
             thread.SetApartmentState(ApartmentState.STA);
             thread.Start();
 
+            learningList = new List<(int, int)>();
+            intention = new Stack<Action>();
+
             var perceivedGrid = observe(environment);
             updateInternalState(perceivedGrid);
         }
@@ -89,6 +97,26 @@ namespace tp1_agent_aspirateur
         private void update()
         {
             var actionCount = 0;
+            battery = BATTERY_MAX/4;
+            while (numberOfActions != 8)
+            {
+                turnUpdate(actionCount);
+
+                learningList.Add((numberOfActions, sensor.readPerformance(environment)));
+                numberOfActions += 1;
+                sensor.resetPerformance(environment);
+                battery = BATTERY_MAX/4;
+                isAlive = true;
+            }
+
+            numberOfActions = findBestNumberOfAction();
+            battery = BATTERY_MAX;
+            turnUpdate(actionCount);
+
+        }
+
+        private void turnUpdate(int actionCount)
+        {
             while (isAlive)
             {
                 if (shouldUseSensorAgain(actionCount++))
@@ -112,7 +140,7 @@ namespace tp1_agent_aspirateur
         // 2. Il n'a pas d'actions à effectuer (intention.Count)
         private bool shouldUseSensorAgain(int actionCount)
         {
-            return actionCount <= numberOfActions || intention.Count == 0;
+            return actionCount >= numberOfActions || intention.Count == 0;
         }
 
         private Cell[,] observe(Environment env)
@@ -502,6 +530,7 @@ namespace tp1_agent_aspirateur
                 batteryText.Text = $"- Batterie : -\n {battery}%";
                 explorationText.Text = $"- Exploration : -\n {exploration}";
                 actionText.Text = $"- Action : -\n {lastAction}";
+                learningText.Text = $"- nActionBeforeExp -\n {numberOfActions}";
             });
         }
 
@@ -519,5 +548,28 @@ namespace tp1_agent_aspirateur
         {
             actionText = text;
         }
+
+        public void setLearningText(TextBlock text)
+        {
+            learningText = text;
+        }
+
+        private int findBestNumberOfAction()
+        {
+            int maxPerformance = 0;
+            int index = 0;
+
+            for (int i = 0; i<learningList.ToArray().Length; i++)
+            {
+                if (maxPerformance < learningList[i].Item2)
+                {
+                    maxPerformance = learningList[i].Item2;
+                    index = i;
+                }
+            }
+
+            return index + 1;
+        }
+
     }
 }
